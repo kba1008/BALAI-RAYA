@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v17.2 (Fixed)</title>
+    <title>Sistem Pelawat & Kehadiran v17.3 (Mobile Fix)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -39,10 +39,36 @@
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
         .list-container { text-align: left; margin-top: 10px; max-height: 300px; overflow-y: auto; }
         
-        /* CSS UNTUK LIST PELAWAT */
-        .user-card { background: #f9f9f9; padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #1e3c72; border-radius: 8px; margin-bottom: 5px; }
-        .list-actions { display: flex; gap: 10px; align-items: center; }
-        .icon-btn { cursor: pointer; font-size: 20px; transition: transform 0.2s; padding: 5px; }
+        /* CSS YANG DIKEMASKINI UNTUK LIST PELAWAT (MOBILE FIX) */
+        .user-card { 
+            background: #f9f9f9; 
+            padding: 10px; 
+            border-bottom: 1px solid #eee; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-left: 5px solid #1e3c72; 
+            border-radius: 8px; 
+            margin-bottom: 5px; 
+        }
+        
+        /* Pastikan nama tidak menolak butang keluar skrin */
+        .user-info {
+            flex-grow: 1;
+            min-width: 0; /* Penting untuk text truncation */
+            padding-right: 10px;
+        }
+
+        /* Pastikan butang kekal saiz tetap dan tidak hilang */
+        .list-actions { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+            flex-shrink: 0; /* Jangan benarkan butang mengecil */
+            white-space: nowrap;
+        }
+        
+        .icon-btn { cursor: pointer; font-size: 20px; transition: transform 0.2s; padding: 5px; display: inline-block; }
         .icon-btn:hover { transform: scale(1.2); background: #ddd; border-radius: 50%; }
         
         /* CSS UNTUK MODAL GAMBAR */
@@ -214,27 +240,21 @@
 
     function hantarKeluar() {
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
-        
-        // 1. Pastikan Sesi Wujud
         if (!session || !session.nama) {
             alert("Ralat Sesi: Sila tekan 'Reset Sistem' di bahagian bawah.");
             return;
         }
-
-        // 2. Pastikan GPS Telah Diperolehi
         if (lastLat === 0 || lastLng === 0) {
-            alert("📡 GPS sedang dicari... Sila tunggu status menjadi 'DALAM KAWASAN' atau 'LUAR KAWASAN' sebelum daftar keluar.");
+            alert("📡 GPS sedang dicari... Sila tunggu.");
             return;
         }
 
         let alasanInput = document.getElementById('alasanKeluar');
         let alasanValue = alasanInput.value.trim();
         
-        // 3. Logik Alasan: Jika kotak disembunyikan (balik on-time), set default text
         if (alasanInput.style.display === "none" || alasanInput.style.display === "") {
             alasanValue = "PULANG MENGIKUT WAKTU";
         } else {
-            // Jika kotak dipaparkan (balik awal), wajib isi
             if (alasanValue === "") {
                 alert("⚠️ Sila isi alasan balik awal!"); return;
             }
@@ -245,7 +265,6 @@
         document.getElementById('btnKeluar').disabled = true;
         document.getElementById('btnKeluar').innerText = "SEDANG PROSES...";
 
-        // 4. Hantar Data (Pastikan nama UPPERCASE untuk matching)
         sendData({ 
             action: "KELUAR", 
             passcode: PASSCODE, 
@@ -262,10 +281,11 @@
     }
 
     function keluarManual(namaUser) {
-        let pass = prompt("⚠️ PERHATIAN: Sila masukkan PASSCODE ADMIN untuk keluarkan " + namaUser + ":");
+        // Fungsi ini meminta password untuk sesiapa sahaja termasuk PELAWAT
+        let pass = prompt("⚠️ KESELAMATAN: Masukkan PASSCODE ADMIN untuk keluarkan " + namaUser + ":");
         
         if (pass !== PASSCODE) {
-            alert("⛔ Kata laluan salah! Anda tidak dibenarkan mengeluarkan pengguna ini.");
+            alert("⛔ Kata laluan salah! Akses ditolak.");
             return;
         }
 
@@ -306,7 +326,6 @@
         .then(() => cb())
         .catch((e) => {
             console.error("Ralat Network:", e);
-            // Tetap jalankan callback supaya UI tidak 'hang'
             cb();
         }); 
     }
@@ -320,6 +339,36 @@
             if(p[3].toUpperCase() === "AM" && h === 12) h = 0;
             d.setHours(h, m, 0, 0); return d;
         } return null;
+    }
+
+    // FUNGSI BARU: Kira tempoh masa berada di sekolah
+    function kiraTempoh(waktuMasukStr) {
+        if (!waktuMasukStr) return "";
+        
+        // Cuba parse format masa (contoh: 7:30:00 AM atau 07:30 AM)
+        let parts = waktuMasukStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
+        if (!parts) return "";
+
+        let jamMasuk = parseInt(parts[1]);
+        let minitMasuk = parseInt(parts[2]);
+        let ampm = parts[4].toUpperCase();
+
+        if (ampm === "PM" && jamMasuk < 12) jamMasuk += 12;
+        if (ampm === "AM" && jamMasuk === 12) jamMasuk = 0;
+
+        let dateMasuk = new Date();
+        dateMasuk.setHours(jamMasuk, minitMasuk, 0, 0);
+
+        let sekarang = new Date();
+        let bezaMs = sekarang - dateMasuk;
+
+        // Jika negatif (mungkin jam peranti lari sikit), anggap 0
+        if (bezaMs < 0) bezaMs = 0;
+
+        let jam = Math.floor(bezaMs / (1000 * 60 * 60));
+        let minit = Math.floor((bezaMs % (1000 * 60 * 60)) / (1000 * 60));
+
+        return `${jam}j ${minit}m`;
     }
 
     function startRadar() {
@@ -348,14 +397,22 @@
             let h = ""; 
             
             currentList.forEach((i, idx) => { 
+                // Logik Ikon: Hanya tunjuk ikon gambar jika ada URL foto (Pelawat biasanya ada, Guru tiada)
                 let imgBtn = i.foto ? `<span class="icon-btn" onclick="viewImage(${idx})">🖼️</span>` : '';
+                
+                // Butang Pangkah (Keluar) - Sentiasa ada untuk semua
                 let xBtn = `<span class="icon-btn" style="color:red; font-weight:bold;" onclick="keluarManual('${i.nama}')" title="Daftar Keluar">❌</span>`;
+                
                 let actionBtns = `<div class="list-actions">${imgBtn}${xBtn}</div>`;
 
+                // Kira tempoh masa
+                let tempoh = kiraTempoh(i.jam);
+                let displayTempoh = tempoh ? ` | ⏱️ ${tempoh}` : "";
+
                 h += `<div class="user-card">
-                        <div style="padding-left:10px;">
+                        <div class="user-info">
                             <strong>${i.nama}</strong><br>
-                            <small>${i.kategori} | ${i.jam}</small>
+                            <small>${i.kategori} | ${i.jam}${displayTempoh}</small>
                         </div>
                         ${actionBtns}
                       </div>`; 
