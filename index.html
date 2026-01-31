@@ -3,44 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sembang Pintar V2 - Cikgu Naim</title>
+    <title>Sembang Ceria - Cikgu Naim</title>
     <style>
-        /* CSS: Gaya Rupa Paras */
-        
+        /* --- GAYA ASAS --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #d1d8e0;
+            /* Latar belakang animasi pelangi */
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gerakWarna 15s ease infinite;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden; /* Elak scroll body */
+            overflow: hidden;
+        }
+
+        @keyframes gerakWarna {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* --- SKRIN DAFTAR --- */
         .skrin-daftar {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            z-index: 10; /* Duduk paling atas */
+            background: rgba(0, 0, 0, 0.6); /* Gelap sikit supaya kad nampak */
+            backdrop-filter: blur(5px);
+            z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: white;
             transition: transform 0.5s ease;
         }
 
         .kad-daftar {
-            background: rgba(255, 255, 255, 0.9);
+            background: white;
             padding: 30px;
-            border-radius: 20px;
+            border-radius: 25px;
             text-align: center;
-            color: #333;
             width: 90%;
             max-width: 400px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 4px solid #fff;
+        }
+
+        .kad-daftar h2 {
+            color: #e73c7e;
+            margin-bottom: 10px;
         }
 
         .grid-avatar {
@@ -50,81 +63,108 @@
             max-height: 200px;
             overflow-y: auto;
             margin: 20px 0;
-            padding: 10px;
-            background: #f0f0f0;
-            border-radius: 10px;
+            padding: 15px;
+            background: #f0f8ff;
+            border-radius: 15px;
+            border: 2px dashed #23a6d5;
         }
 
         .pilihan-avatar {
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
             padding: 5px;
             border-radius: 50%;
-            border: 2px solid transparent;
+            border: 3px solid transparent;
             transition: 0.2s;
             background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .pilihan-avatar:hover { transform: scale(1.2); }
-        .pilihan-avatar.dipilih { border-color: #764ba2; background: #e0d4fc; }
+        .pilihan-avatar:hover { transform: scale(1.2); background: #fffacd; }
+        .pilihan-avatar.dipilih { 
+            border-color: #ff416c; 
+            background: #ffe4e1; 
+            transform: scale(1.1);
+        }
 
         .input-nama {
             width: 80%;
-            padding: 10px;
+            padding: 12px;
             font-size: 16px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-            margin-bottom: 10px;
+            border-radius: 50px;
+            border: 2px solid #23d5ab;
+            margin-bottom: 15px;
             text-align: center;
+            outline: none;
+            color: #333;
         }
 
+        .input-nama:focus { border-color: #e73c7e; }
+
         .btn-mula {
-            background: #764ba2;
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
             color: white;
             border: none;
-            padding: 10px 30px;
-            border-radius: 25px;
+            padding: 12px 40px;
+            border-radius: 50px;
             font-size: 18px;
             cursor: pointer;
             font-weight: bold;
+            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
+            transition: 0.3s;
         }
         
-        .btn-mula:hover { background: #5b3a7d; }
+        .btn-mula:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255, 65, 108, 0.6); }
 
-        /* --- SKRIN CHAT (Sama macam dulu tapi upgrade sikit) --- */
+        /* --- SKRIN CHAT --- */
         .kotak-chat {
             width: 100%;
             max-width: 450px;
-            height: 90vh; /* Hampir penuh skrin */
-            background-color: #fff;
-            border-radius: 20px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            height: 90vh;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            border: 1px solid #ccc;
             position: relative;
         }
 
         .kepala-chat {
-            background-color: #075e54;
+            background: linear-gradient(to right, #23a6d5, #23d5ab);
             color: white;
             padding: 15px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .avatar-kecil { font-size: 30px; }
+        .avatar-kecil { 
+            font-size: 35px; 
+            background: white; 
+            border-radius: 50%; 
+            padding: 2px;
+        }
+        
         .info-user { flex: 1; }
-        .nama-user { font-weight: bold; display: block; }
-        .status { font-size: 12px; opacity: 0.8; }
+        .nama-user { font-weight: bold; font-size: 18px; display: block; }
+        .status { font-size: 12px; opacity: 0.9; }
+
+        .btn-keluar {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 20px;
+        }
 
         .ruang-mesej {
             flex: 1;
             padding: 20px;
-            background-color: #e5ddd5;
-            background-image: url('https://www.transparenttextures.com/patterns/cubes.png'); /* Corak halus */
+            background-color: #f4f7f6;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -135,154 +175,181 @@
             display: flex;
             align-items: flex-end;
             gap: 10px;
-            animation: muncul 0.3s ease;
+            animation: muncul 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .baris-mesej.kanan { flex-direction: row-reverse; }
 
-        .muka-pengirim { font-size: 24px; margin-bottom: 5px; }
+        .muka-pengirim { font-size: 28px; margin-bottom: 5px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2)); }
 
         .belon {
             max-width: 70%;
-            padding: 10px 15px;
-            border-radius: 15px;
+            padding: 12px 18px;
+            border-radius: 20px;
             font-size: 15px;
             line-height: 1.4;
             position: relative;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
         }
 
-        .belon-kiri { background-color: white; border-bottom-left-radius: 2px; }
-        .belon-kanan { background-color: #dcf8c6; border-bottom-right-radius: 2px; }
+        /* Belon Robot - Putih Bersih */
+        .belon-kiri { 
+            background-color: white; 
+            border-bottom-left-radius: 5px; 
+            color: #444;
+        }
+
+        /* Belon Adik - Warna Warni Gradient */
+        .belon-kanan { 
+            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            color: white; 
+            border-bottom-right-radius: 5px; 
+        }
 
         @keyframes muncul {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from { transform: translateY(20px) scale(0.8); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
         }
 
         .ruang-input {
-            padding: 10px;
-            background-color: #f0f0f0;
+            padding: 15px;
+            background: white;
             display: flex;
-            gap: 5px;
-            border-top: 1px solid #ddd;
+            gap: 10px;
+            border-top: 1px solid #eee;
             align-items: center;
             position: relative;
         }
 
-        .btn-emoji {
-            font-size: 20px;
-            background: none;
+        .btn-emoji-toggle {
+            font-size: 24px;
+            background: #fffacd;
             border: none;
             cursor: pointer;
-            padding: 5px;
+            padding: 8px;
+            border-radius: 50%;
+            transition: 0.2s;
         }
+        .btn-emoji-toggle:hover { transform: scale(1.1); background: #ffd700; }
 
         /* Popup Emoji Picker */
         .kotak-emoji {
             position: absolute;
-            bottom: 60px;
-            left: 10px;
-            width: 250px;
-            height: 200px;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            display: none; /* Sorok dulu */
+            bottom: 80px;
+            left: 15px;
+            width: 280px;
+            height: 220px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 20px;
+            display: none;
             grid-template-columns: repeat(6, 1fr);
             overflow-y: auto;
-            padding: 5px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            padding: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
         .item-emoji {
-            font-size: 20px;
+            font-size: 24px;
             cursor: pointer;
             text-align: center;
-            padding: 5px;
+            padding: 8px;
+            transition: 0.2s;
         }
-        .item-emoji:hover { background: #eee; border-radius: 5px; }
+        .item-emoji:hover { transform: scale(1.3); }
 
         input {
             flex: 1;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 25px;
+            padding: 12px 20px;
+            border: 2px solid #eee;
+            border-radius: 50px;
             outline: none;
+            transition: 0.3s;
         }
+        input:focus { border-color: #23a6d5; background: #f0f8ff; }
 
         button.hantar {
-            padding: 10px 15px;
-            background-color: #075e54;
+            background: linear-gradient(to right, #11998e, #38ef7d);
             color: white;
             border: none;
             border-radius: 50%;
             cursor: pointer;
-            width: 45px; height: 45px;
+            width: 50px; height: 50px;
             display: flex; justify-content: center; align-items: center;
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);
+            transition: 0.3s;
         }
+        button.hantar:hover { transform: scale(1.1) rotate(-10deg); }
+
+        /* Scrollbar cantik */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #aaa; }
 
     </style>
 </head>
 <body>
 
-    <!-- SKRIN DAFTAR (Overlay) -->
+    <!-- SKRIN DAFTAR -->
     <div class="skrin-daftar" id="skrinDaftar">
         <div class="kad-daftar">
-            <h2>Daftar Masuk</h2>
-            <p>Sila pilih Avatar & Nama:</p>
+            <h2>✨ Jom Mula! ✨</h2>
+            <p>Pilih Avatar Paling Ceria:</p>
             
             <div class="grid-avatar" id="tempatAvatar">
-                <!-- Avatar akan diisi oleh JavaScript -->
+                <!-- Avatar dijana di sini -->
             </div>
 
-            <input type="text" id="inputNamaUser" class="input-nama" placeholder="Nama Panggilan..." maxlength="15">
+            <input type="text" id="inputNamaUser" class="input-nama" placeholder="Nama Panggilan Adik..." maxlength="15">
             <br>
             <button class="btn-mula" onclick="masukChat()">MULA CHAT 🚀</button>
         </div>
     </div>
 
-    <!-- SKRIN CHAT (Utama) -->
+    <!-- SKRIN CHAT -->
     <div class="kotak-chat">
         <div class="kepala-chat">
             <div class="avatar-kecil">🤖</div>
             <div class="info-user">
-                <span class="nama-user">Robot Cikgu Naim</span>
-                <span class="status">Online</span>
+                <span class="nama-user">Robot Ceria</span>
+                <span class="status">Sentiasa Online</span>
             </div>
-            <button class="btn-emoji" onclick="location.reload()" title="Keluar">🚪</button>
+            <button class="btn-keluar" onclick="location.reload()" title="Keluar">🔙</button>
         </div>
         
         <div class="ruang-mesej" id="paparanMesej">
-            <!-- Mesej akan masuk sini -->
+            <!-- Mesej masuk sini -->
         </div>
 
         <!-- Popup Emoji -->
         <div class="kotak-emoji" id="popupEmoji"></div>
 
         <div class="ruang-input">
-            <button class="btn-emoji" onclick="tukarEmoji()">😀</button>
-            <input type="text" id="inputAyat" placeholder="Taip mesej..." onkeypress="tekanEnter(event)">
+            <button class="btn-emoji-toggle" onclick="tukarEmoji()">🤩</button>
+            <input type="text" id="inputAyat" placeholder="Taip sesuatu di sini..." onkeypress="tekanEnter(event)">
             <button class="hantar" onclick="hantarMesej()">➤</button>
         </div>
     </div>
 
     <script>
         // --- DATA ---
-        let avatarPilihan = "😎"; // Default
+        let avatarPilihan = "😎"; 
         let namaUser = "Adik";
         
-        // Senarai Emoji untuk Avatar (Kita guna kod unicode range untuk jimat masa)
-        // Cikgu buat array manual sikit campur loop
+        // Senarai Emoji (Campuran warna-warni)
         const senaraiAvatar = [
-            "👦","👧","👨","👩","👴","👵","👶","👱","👮","👷","👸","👳","👲","👰","👼","🎅","🧙","🧚","🧛","🧜","🧝","🧞","🧟","🙍","🙎","🙅","🙆","💁","🙋","🙇","🤦","🤷","💆","💇","🚶","🏃","💃","🕺","👯","🧖","🧗","🧘","🛀","🛌","🕴","🗣","👤","👥","🤺","🏇","⛷","🏂","🏌","🏄","🚣","🏊","⛹","🏋","🚴","🚵","🏎","🏍","🤸","🤼","🤽","🤾","🤹","👫","👬","👭","💏","👩‍❤️‍💋‍👨","👨‍❤️‍💋‍👨","👩‍❤️‍💋‍👩","💑","👩‍❤️‍👨","👨‍❤️‍👨","👩‍❤️‍👩","👪","👨‍👩‍👦","👨‍👩‍👧","👨‍👩‍👧‍👦","👨‍👩‍👦‍👦","👨‍👩‍👧‍👧","👨‍👨‍👦","👨‍👨‍👧","👨‍👨‍👧‍👦","👨‍👨‍👦‍👦","👨‍👨‍👧‍👧","👩‍👩‍👦","👩‍👩‍👧","👩‍👩‍👧‍👦","👩‍👩‍👦‍👦","👩‍👩‍👧‍👧","🤳","💪","👈","👉","☝","👆","🖕","👇","✌","🤞","🖖","🤘","🤙","🖐","✋","👌","👍","👎","✊","👊","🤛","🤜","🤚","👋","🤟","✍","👏","👐","🙌","🤲","🙏","🤝","💅","👂","👃","👣","👀","👁","🧠","👅","👄","💋","💘","❤️","💓","💔","💖","💗","💙","💚","💛","🧡","💜","🖤","💝","💞","💟","❣️","💌","💤","💢","💣","💥","💦","💨","💫","💬","🗨","🗯","💭","🕳","👓","🕶","👔","👕","👖","🧣","🧤","🧥","🧦","👗","👘","👙","👚","👛","👜","👝","🛍","🎒","👞","👟","👠","👡","👢","👑","👒","🎩","🎓","🧢","⛑","📿","💄","💍","💎"
+            "👦","👧","👽","🦄","🐼","🐸","🐯","🦁","🐮","🐷","🐵","🐔","🐧","🐥","🐙","🦋","🐞","🌹","🌻","🌈","🔥","⚡","⚽","🏀","🎮","🎨","🚀","🚁","🛸","🎪","🍔","🍕","🍩","🍦","🍭","🍬","🥤","🍄","⛄","🦖","🦈","🐳","🐠","🦜","🦚","🐕","🐈","🐇","🐿","🦔","🤠","🥳","😎","🤓","🤖","👻","💀","💩","🤡","👹","👺","👾","🎃"
         ];
 
-        // --- FUNGSI MULA (SETUP) ---
+        // --- SETUP AWAL ---
         
-        // 1. Jana Grid Avatar
         const bekasAvatar = document.getElementById('tempatAvatar');
+        const popupEmoji = document.getElementById('popupEmoji');
         
+        // 1. Buat butang avatar daftar
         senaraiAvatar.forEach(emoji => {
             const btn = document.createElement('div');
             btn.className = 'pilihan-avatar';
@@ -293,8 +360,7 @@
             bekasAvatar.appendChild(btn);
         });
 
-        // 2. Jana Popup Emoji untuk Chat
-        const popupEmoji = document.getElementById('popupEmoji');
+        // 2. Buat butang emoji chat
         senaraiAvatar.forEach(emoji => {
             const span = document.createElement('div');
             span.className = 'item-emoji';
@@ -305,10 +371,9 @@
             popupEmoji.appendChild(span);
         });
 
-        // --- LOGIK DAFTAR ---
+        // --- FUNGSI UTAMA ---
 
         function pilihAvatarIni(elemen, emoji) {
-            // Buang class 'dipilih' dari semua, tambah pada yang diklik
             document.querySelectorAll('.pilihan-avatar').forEach(el => el.classList.remove('dipilih'));
             elemen.classList.add('dipilih');
             avatarPilihan = emoji;
@@ -318,19 +383,15 @@
             const input = document.getElementById('inputNamaUser');
             if (input.value.trim() !== "") {
                 namaUser = input.value;
-                // Hilangkan skrin daftar (slide ke atas)
-                document.getElementById('skrinDaftar').style.transform = "translateY(-100%)";
+                document.getElementById('skrinDaftar').style.transform = "translateY(-150%)"; // Naik atas
                 
-                // Mula chat
                 setTimeout(() => {
-                    tambahBelon("Hai " + namaUser + "! Selamat datang. Saya suka avatar " + avatarPilihan + " awak tu!", 'robot');
-                }, 500);
+                    tambahBelon("Hai " + namaUser + "! Wah, cantiknya avatar " + avatarPilihan + " awak!", 'robot');
+                }, 800);
             } else {
-                alert("Sila masukkan nama dulu ya!");
+                alert("Sila letak nama panggilan yang comel dulu! 😉");
             }
         }
-
-        // --- LOGIK CHAT ---
 
         const paparan = document.getElementById('paparanMesej');
         const inputAyat = document.getElementById('inputAyat');
@@ -339,20 +400,18 @@
             const teks = inputAyat.value.trim();
             if (teks === "") return;
 
-            // Tambah mesej adik
             tambahBelon(teks, 'adik');
             inputAyat.value = '';
             skrolKeBawah();
-            popupEmoji.style.display = 'none'; // Tutup emoji lepas hantar
+            popupEmoji.style.display = 'none';
 
-            // Robot balas
+            // Robot fikir sekejap (simulasi typing)
             setTimeout(() => {
                 jawabMesej(teks);
-            }, 1000);
+            }, 1200);
         }
 
         function tambahBelon(ayat, siapa) {
-            // Tentukan class dan avatar ikut siapa yang hantar
             let kelasBaris = (siapa === 'adik') ? 'baris-mesej kanan' : 'baris-mesej';
             let kelasBelon = (siapa === 'adik') ? 'belon belon-kanan' : 'belon belon-kiri';
             let muka = (siapa === 'adik') ? avatarPilihan : '🤖';
@@ -366,25 +425,31 @@
             
             paparan.insertAdjacentHTML('beforeend', html);
             skrolKeBawah();
+            
+            // Bunyi 'Pop' lembut (pilihan)
+            // let audio = new Audio('https://www.soundjay.com/button/button-09.mp3');
+            // audio.volume = 0.2;
+            // audio.play().catch(e => {}); // Abaikan error kalau browser block
         }
 
         function jawabMesej(ayatAdik) {
             let jawapan = "";
             let ayat = ayatAdik.toLowerCase();
 
-            // Logik Mudah Robot
-            if (ayat.includes("hai") || ayat.includes("salam")) {
-                jawapan = "Waalaikumussalam! " + namaUser + " sihat ke hari ni?";
+            if (ayat.includes("hai") || ayat.includes("hello")) {
+                jawapan = "Hai sahabat! Hari ini hari yang indah kan? 🌈";
+            } else if (ayat.includes("warna")) {
+                jawapan = "Saya suka semua warna! Tapi paling suka biru macam langit. Awak?";
             } else if (ayat.includes("sihat")) {
-                jawapan = "Alhamdulillah, baguslah tu! " + avatarPilihan;
-            } else if (ayat.includes("nama")) {
-                jawapan = "Nama saya Robo-Naim. Tapi nama awak " + namaUser + " kan?";
-            } else if (ayat.includes("bosan")) {
-                jawapan = "Jangan bosan! Cuba tekan butang emoji tu 😀 banyak benda menarik.";
+                jawapan = "Saya robot, sentiasa sihat bertenaga! ⚡";
+            } else if (ayat.includes("buat apa")) {
+                jawapan = "Tengah tunggu awak ajak borak ni. 🤭";
             } else if (ayat.includes("terima kasih")) {
-                jawapan = "Sama-sama sahabatku! 🤝";
+                jawapan = "Sama-sama! Awak memang berbudi bahasa. 👍";
+            } else if (ayat.includes("nyanyi")) {
+                jawapan = "La la la~ 🎵 Suara saya tak sedap, awak sajalah nyanyi!";
             } else {
-                jawapan = "Maaf, saya tak faham ayat tu. Cuba cerita pasal hobi awak?";
+                jawapan = "Wah, menarik tu! Cerita lagi, saya suka dengar. 🤩";
             }
 
             tambahBelon(jawapan, 'robot');
@@ -397,8 +462,6 @@
         function tekanEnter(event) {
             if (event.key === "Enter") hantarMesej();
         }
-
-        // --- FUNGSI EMOJI PICKER ---
         
         function tukarEmoji() {
             if (popupEmoji.style.display === 'grid') {
