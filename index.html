@@ -3,127 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sembang Ceria - Cikgu Naim</title>
+    <title>KAMPUNG KUALA SELAMA - Chat Room</title>
     <style>
-        /* --- GAYA ASAS --- */
+        /* --- GAYA MODEN & 3D (GLASSMORPHISM) --- */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            /* Latar belakang animasi pelangi */
-            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-            background-size: 400% 400%;
-            animation: gerakWarna 15s ease infinite;
+            /* Latar belakang moden gelap & elegan */
+            background: radial-gradient(circle at center, #2b32b2, #1488cc);
+            height: 100vh;
+            margin: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
             overflow: hidden;
         }
 
-        @keyframes gerakWarna {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* Kesan Kaca (Glassmorphism) */
+        .kaca {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border-radius: 20px;
         }
 
         /* --- SKRIN DAFTAR --- */
         .skrin-daftar {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); /* Gelap sikit supaya kad nampak */
-            backdrop-filter: blur(5px);
-            z-index: 10;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 100;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: transform 0.5s ease;
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
         .kad-daftar {
-            background: white;
-            padding: 30px;
-            border-radius: 25px;
+            padding: 40px;
             text-align: center;
             width: 90%;
-            max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            border: 4px solid #fff;
+            max-width: 450px;
+            color: white;
         }
 
         .kad-daftar h2 {
-            color: #e73c7e;
-            margin-bottom: 10px;
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 1px;
         }
+
+        .kad-daftar p { font-size: 14px; opacity: 0.9; margin-bottom: 20px; }
 
         .grid-avatar {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            max-height: 200px;
+            gap: 15px;
+            max-height: 250px;
             overflow-y: auto;
             margin: 20px 0;
-            padding: 15px;
-            background: #f0f8ff;
-            border-radius: 15px;
-            border: 2px dashed #23a6d5;
+            padding: 10px;
+            /* Scrollbar halus */
+            scrollbar-width: thin;
         }
 
+        /* Gaya Avatar 3D */
         .pilihan-avatar {
-            font-size: 28px;
+            font-size: 35px;
             cursor: pointer;
-            padding: 5px;
-            border-radius: 50%;
-            border: 3px solid transparent;
-            transition: 0.2s;
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 50px; height: 50px;
+            display: flex; justify-content: center; align-items: center;
+            background: linear-gradient(145deg, #ffffff, #e6e6e6);
+            border-radius: 15px;
+            box-shadow: 5px 5px 10px #bebebe, -5px -5px 10px #ffffff; /* Kesan timbul 3D */
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
         }
 
-        .pilihan-avatar:hover { transform: scale(1.2); background: #fffacd; }
+        .pilihan-avatar:hover { transform: translateY(-3px); }
+        
         .pilihan-avatar.dipilih { 
-            border-color: #ff416c; 
-            background: #ffe4e1; 
+            border-color: #00d2ff;
+            background: #e0f7fa;
             transform: scale(1.1);
+            box-shadow: inset 5px 5px 10px #b8ccce, inset -5px -5px 10px #ffffff; /* Kesan tenggelam bila pilih */
         }
 
         .input-nama {
             width: 80%;
-            padding: 12px;
+            padding: 15px;
             font-size: 16px;
-            border-radius: 50px;
-            border: 2px solid #23d5ab;
-            margin-bottom: 15px;
+            border-radius: 15px;
+            border: none;
+            margin-bottom: 20px;
             text-align: center;
             outline: none;
-            color: #333;
+            background: rgba(255,255,255,0.9);
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
         }
 
-        .input-nama:focus { border-color: #e73c7e; }
-
         .btn-mula {
-            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            background: linear-gradient(to right, #3a7bd5, #00d2ff);
             color: white;
             border: none;
-            padding: 12px 40px;
+            padding: 15px 50px;
             border-radius: 50px;
             font-size: 18px;
             cursor: pointer;
             font-weight: bold;
-            box-shadow: 0 5px 15px rgba(255, 65, 108, 0.4);
+            box-shadow: 0 10px 20px rgba(0, 210, 255, 0.3);
             transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
-        .btn-mula:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(255, 65, 108, 0.6); }
+        .btn-mula:hover { 
+            transform: translateY(-3px) scale(1.05); 
+            box-shadow: 0 15px 25px rgba(0, 210, 255, 0.5); 
+        }
 
         /* --- SKRIN CHAT --- */
         .kotak-chat {
             width: 100%;
-            max-width: 450px;
+            max-width: 500px;
             height: 90vh;
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 25px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -131,40 +138,39 @@
         }
 
         .kepala-chat {
-            background: linear-gradient(to right, #23a6d5, #23d5ab);
-            color: white;
-            padding: 15px;
+            padding: 20px;
             display: flex;
             align-items: center;
             gap: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: rgba(0,0,0,0.2);
+            color: white;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .avatar-kecil { 
-            font-size: 35px; 
-            background: white; 
-            border-radius: 50%; 
-            padding: 2px;
+            font-size: 40px; 
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3)); /* Bayang 3D */
         }
         
         .info-user { flex: 1; }
-        .nama-user { font-weight: bold; font-size: 18px; display: block; }
-        .status { font-size: 12px; opacity: 0.9; }
+        .nama-room { font-weight: 800; font-size: 16px; display: block; letter-spacing: 0.5px; }
+        .status { font-size: 12px; opacity: 0.8; color: #00d2ff; }
 
         .btn-keluar {
-            background: rgba(255,255,255,0.2);
-            border: none;
+            background: rgba(255, 50, 50, 0.2);
+            border: 1px solid rgba(255, 50, 50, 0.5);
             color: white;
             cursor: pointer;
-            padding: 5px 10px;
+            padding: 8px 15px;
             border-radius: 10px;
-            font-size: 20px;
+            font-size: 14px;
+            transition: 0.3s;
         }
+        .btn-keluar:hover { background: rgba(255, 50, 50, 0.5); }
 
         .ruang-mesej {
             flex: 1;
             padding: 20px;
-            background-color: #f4f7f6;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -180,30 +186,42 @@
 
         .baris-mesej.kanan { flex-direction: row-reverse; }
 
-        .muka-pengirim { font-size: 28px; margin-bottom: 5px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2)); }
+        .muka-pengirim { 
+            font-size: 32px; 
+            margin-bottom: 5px; 
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3)); /* Efek 3D pada muka */
+        }
 
         .belon {
             max-width: 70%;
             padding: 12px 18px;
-            border-radius: 20px;
+            border-radius: 18px;
             font-size: 15px;
             line-height: 1.4;
             position: relative;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            color: #333;
         }
 
-        /* Belon Robot - Putih Bersih */
+        /* Belon Kiri (Kawan) - Gaya Putih 3D */
         .belon-kiri { 
-            background-color: white; 
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
             border-bottom-left-radius: 5px; 
-            color: #444;
+        }
+        .nama-pengirim-kecil {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 3px;
+            display: block;
+            font-weight: bold;
         }
 
-        /* Belon Adik - Warna Warni Gradient */
+        /* Belon Kanan (Kita) - Gaya Biru 3D */
         .belon-kanan { 
-            background: linear-gradient(to right, #ff416c, #ff4b2b);
+            background: linear-gradient(145deg, #00d2ff, #3a7bd5);
             color: white; 
             border-bottom-right-radius: 5px; 
+            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
         }
 
         @keyframes muncul {
@@ -213,41 +231,40 @@
 
         .ruang-input {
             padding: 15px;
-            background: white;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
             display: flex;
             gap: 10px;
-            border-top: 1px solid #eee;
             align-items: center;
             position: relative;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
 
         .btn-emoji-toggle {
             font-size: 24px;
-            background: #fffacd;
+            background: none;
             border: none;
             cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
             transition: 0.2s;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
         }
-        .btn-emoji-toggle:hover { transform: scale(1.1); background: #ffd700; }
+        .btn-emoji-toggle:hover { transform: scale(1.2); }
 
         /* Popup Emoji Picker */
         .kotak-emoji {
             position: absolute;
             bottom: 80px;
             left: 15px;
-            width: 280px;
-            height: 220px;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            border: none;
-            border-radius: 20px;
+            width: 300px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
             display: none;
             grid-template-columns: repeat(6, 1fr);
             overflow-y: auto;
             padding: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 50;
         }
 
         .item-emoji {
@@ -262,62 +279,85 @@
         input {
             flex: 1;
             padding: 12px 20px;
-            border: 2px solid #eee;
+            border: none;
             border-radius: 50px;
             outline: none;
+            background: rgba(255,255,255,0.9);
             transition: 0.3s;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
         }
-        input:focus { border-color: #23a6d5; background: #f0f8ff; }
+        input:focus { background: #fff; }
 
         button.hantar {
-            background: linear-gradient(to right, #11998e, #38ef7d);
+            background: linear-gradient(145deg, #00d2ff, #3a7bd5);
             color: white;
             border: none;
             border-radius: 50%;
             cursor: pointer;
-            width: 50px; height: 50px;
+            width: 45px; height: 45px;
             display: flex; justify-content: center; align-items: center;
-            font-size: 20px;
-            box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);
+            font-size: 18px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             transition: 0.3s;
         }
-        button.hantar:hover { transform: scale(1.1) rotate(-10deg); }
+        button.hantar:hover { transform: scale(1.1); box-shadow: 0 6px 15px rgba(0, 210, 255, 0.4); }
 
-        /* Scrollbar cantik */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+        /* Amaran Merah */
+        .amaran-box {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff4b2b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(255, 75, 43, 0.4);
+            z-index: 200;
+            display: none;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(-50%) rotate(0deg); }
+            25% { transform: translateX(-55%) rotate(-5deg); }
+            75% { transform: translateX(-45%) rotate(5deg); }
+            100% { transform: translateX(-50%) rotate(0deg); }
+        }
 
     </style>
 </head>
 <body>
 
+    <!-- BOX AMARAN -->
+    <div id="boxAmaran" class="amaran-box">⚠️ Bahasa tidak sopan dikesan!</div>
+
     <!-- SKRIN DAFTAR -->
     <div class="skrin-daftar" id="skrinDaftar">
-        <div class="kad-daftar">
-            <h2>✨ Jom Mula! ✨</h2>
-            <p>Pilih Avatar Paling Ceria:</p>
+        <div class="kad-daftar kaca">
+            <h2>KAMPUNG KUALA SELAMA</h2>
+            <p>Sila pilih Avatar 3D & Nama Samaran Unik</p>
             
             <div class="grid-avatar" id="tempatAvatar">
                 <!-- Avatar dijana di sini -->
             </div>
 
-            <input type="text" id="inputNamaUser" class="input-nama" placeholder="Nama Panggilan Adik..." maxlength="15">
+            <input type="text" id="inputNamaUser" class="input-nama" placeholder="Nama Samaran (Cth: Mat Kilau)" maxlength="12">
             <br>
-            <button class="btn-mula" onclick="masukChat()">MULA CHAT 🚀</button>
+            <button class="btn-mula" onclick="masukChat()">MASUK CHAT</button>
         </div>
     </div>
 
     <!-- SKRIN CHAT -->
-    <div class="kotak-chat">
+    <div class="kotak-chat kaca">
         <div class="kepala-chat">
-            <div class="avatar-kecil">🤖</div>
+            <div class="avatar-kecil">🏡</div>
             <div class="info-user">
-                <span class="nama-user">Robot Ceria</span>
-                <span class="status">Sentiasa Online</span>
+                <span class="nama-room">KAMPUNG KUALA SELAMA</span>
+                <span class="status">Ahli Kampung Online</span>
             </div>
-            <button class="btn-keluar" onclick="location.reload()" title="Keluar">🔙</button>
+            <button class="btn-keluar" onclick="location.reload()" title="Keluar">Keluar</button>
         </div>
         
         <div class="ruang-mesej" id="paparanMesej">
@@ -328,8 +368,8 @@
         <div class="kotak-emoji" id="popupEmoji"></div>
 
         <div class="ruang-input">
-            <button class="btn-emoji-toggle" onclick="tukarEmoji()">🤩</button>
-            <input type="text" id="inputAyat" placeholder="Taip sesuatu di sini..." onkeypress="tekanEnter(event)">
+            <button class="btn-emoji-toggle" onclick="tukarEmoji()">😎</button>
+            <input type="text" id="inputAyat" placeholder="Borak dengan sopan..." onkeypress="tekanEnter(event)">
             <button class="hantar" onclick="hantarMesej()">➤</button>
         </div>
     </div>
@@ -337,15 +377,19 @@
     <script>
         // --- DATA ---
         let avatarPilihan = "😎"; 
-        let namaUser = "Adik";
+        let namaUser = "Ahli Baru";
         
-        // Senarai Emoji (Campuran warna-warni)
+        // Senarai Perkataan Terlarang (Pelbagai Bahasa)
+        const senaraiCarutan = [
+            "babi", "bodoh", "sial", "anjir", "fuck", "shit", "pukimak", "lancau", "kimak", "butoh", "pantat", "asshole", "bitch", "gila", "bongok", "bahlul"
+        ];
+
+        // Senarai Avatar 3D Style
         const senaraiAvatar = [
-            "👦","👧","👽","🦄","🐼","🐸","🐯","🦁","🐮","🐷","🐵","🐔","🐧","🐥","🐙","🦋","🐞","🌹","🌻","🌈","🔥","⚡","⚽","🏀","🎮","🎨","🚀","🚁","🛸","🎪","🍔","🍕","🍩","🍦","🍭","🍬","🥤","🍄","⛄","🦖","🦈","🐳","🐠","🦜","🦚","🐕","🐈","🐇","🐿","🦔","🤠","🥳","😎","🤓","🤖","👻","💀","💩","🤡","👹","👺","👾","🎃"
+            "👦","👧","👱","👨‍🦱","👩‍🦰","🧔","🧕","👲","👮","🕵️","👷","🦸","🦹","🧙","🧚","🧛","🧜","🧝","🧞","🧟","👽","🤖","🦁","🐯","🐻","🐨","🐼","🐸","🐙","🦄"
         ];
 
         // --- SETUP AWAL ---
-        
         const bekasAvatar = document.getElementById('tempatAvatar');
         const popupEmoji = document.getElementById('popupEmoji');
         
@@ -381,78 +425,124 @@
 
         function masukChat() {
             const input = document.getElementById('inputNamaUser');
-            if (input.value.trim() !== "") {
-                namaUser = input.value;
-                document.getElementById('skrinDaftar').style.transform = "translateY(-150%)"; // Naik atas
-                
-                setTimeout(() => {
-                    tambahBelon("Hai " + namaUser + "! Wah, cantiknya avatar " + avatarPilihan + " awak!", 'robot');
-                }, 800);
-            } else {
-                alert("Sila letak nama panggilan yang comel dulu! 😉");
+            let namaTaip = input.value.trim();
+
+            // Validasi Nama
+            if (namaTaip === "") {
+                alert("Sila masukkan nama samaran dulu!");
+                return;
             }
+
+            // Cek jika nama ada perkataan lucah
+            if (cekCarutan(namaTaip)) {
+                tunjukAmaran("Nama tidak sopan tidak dibenarkan!");
+                input.value = "";
+                return;
+            }
+
+            // Simulasi cek nama sama (Sebab tiada server sebenar, kita halang nama 'Admin' atau 'Robot')
+            if (namaTaip.toLowerCase() === "admin" || namaTaip.toLowerCase() === "robot") {
+                alert("Nama ini telah digunakan oleh sistem. Sila pilih nama lain.");
+                return;
+            }
+
+            namaUser = namaTaip;
+            document.getElementById('skrinDaftar').style.transform = "translateY(-150%)"; // Naik atas
+            
+            setTimeout(() => {
+                tambahBelon("Selamat datang ke Kampung Kuala Selama, " + namaUser + "! Sila beradab sopan ya.", 'Sistem', '🤖');
+            }, 800);
         }
 
         const paparan = document.getElementById('paparanMesej');
         const inputAyat = document.getElementById('inputAyat');
 
+        function cekCarutan(teks) {
+            let teksKecil = teks.toLowerCase();
+            return senaraiCarutan.some(kata => teksKecil.includes(kata));
+        }
+
+        function tunjukAmaran(mesej) {
+            const box = document.getElementById('boxAmaran');
+            box.innerText = "⚠️ " + mesej;
+            box.style.display = "block";
+            setTimeout(() => {
+                box.style.display = "none";
+            }, 3000);
+        }
+
         function hantarMesej() {
             const teks = inputAyat.value.trim();
             if (teks === "") return;
 
-            tambahBelon(teks, 'adik');
+            // PENAPIS BAHASA
+            if (cekCarutan(teks)) {
+                tunjukAmaran("Dilarang mencarut! Mesej dipadam.");
+                inputAyat.value = '';
+                return;
+            }
+
+            tambahBelon(teks, namaUser, avatarPilihan, true); // true = mesej kita
             inputAyat.value = '';
             skrolKeBawah();
             popupEmoji.style.display = 'none';
 
-            // Robot fikir sekejap (simulasi typing)
+            // Simulasi kawan balas (Sebab tiada backend sebenar)
             setTimeout(() => {
-                jawabMesej(teks);
-            }, 1200);
+                balasSecaraRawak(teks);
+            }, 1500 + Math.random() * 1000);
         }
 
-        function tambahBelon(ayat, siapa) {
-            let kelasBaris = (siapa === 'adik') ? 'baris-mesej kanan' : 'baris-mesej';
-            let kelasBelon = (siapa === 'adik') ? 'belon belon-kanan' : 'belon belon-kiri';
-            let muka = (siapa === 'adik') ? avatarPilihan : '🤖';
+        function tambahBelon(ayat, nama, muka, isKita = false) {
+            let kelasBaris = isKita ? 'baris-mesej kanan' : 'baris-mesej';
+            let kelasBelon = isKita ? 'belon belon-kanan' : 'belon belon-kiri';
+            
+            // Kalau bukan kita, tunjuk nama kecil di atas belon
+            let htmlNama = isKita ? '' : `<span class="nama-pengirim-kecil">${nama}</span>`;
 
             const html = `
                 <div class="${kelasBaris}">
                     <div class="muka-pengirim">${muka}</div>
-                    <div class="${kelasBelon}">${ayat}</div>
+                    <div class="${kelasBelon}">
+                        ${htmlNama}
+                        ${ayat}
+                    </div>
                 </div>
             `;
             
             paparan.insertAdjacentHTML('beforeend', html);
             skrolKeBawah();
-            
-            // Bunyi 'Pop' lembut (pilihan)
-            // let audio = new Audio('https://www.soundjay.com/button/button-09.mp3');
-            // audio.volume = 0.2;
-            // audio.play().catch(e => {}); // Abaikan error kalau browser block
         }
 
-        function jawabMesej(ayatAdik) {
-            let jawapan = "";
-            let ayat = ayatAdik.toLowerCase();
+        // Fungsi simulasi kawan kampung membalas
+        function balasSecaraRawak(ayatKita) {
+            const kawanKampung = [
+                { nama: "Mat Kilau", avatar: "🧔" },
+                { nama: "Melur", avatar: "🧕" },
+                { nama: "Tok Ketua", avatar: "👴" },
+                { nama: "Budak Tech", avatar: "🤓" }
+            ];
+            
+            const responUmum = [
+                "Betul tu!", 
+                "Wah menarik.", 
+                "Jom lepak kedai kopi nanti.", 
+                "Hahaha lawak la awak ni.",
+                "Salam perkenalan dari saya.",
+                "Kampung kita memang terbaik."
+            ];
 
-            if (ayat.includes("hai") || ayat.includes("hello")) {
-                jawapan = "Hai sahabat! Hari ini hari yang indah kan? 🌈";
-            } else if (ayat.includes("warna")) {
-                jawapan = "Saya suka semua warna! Tapi paling suka biru macam langit. Awak?";
-            } else if (ayat.includes("sihat")) {
-                jawapan = "Saya robot, sentiasa sihat bertenaga! ⚡";
-            } else if (ayat.includes("buat apa")) {
-                jawapan = "Tengah tunggu awak ajak borak ni. 🤭";
-            } else if (ayat.includes("terima kasih")) {
-                jawapan = "Sama-sama! Awak memang berbudi bahasa. 👍";
-            } else if (ayat.includes("nyanyi")) {
-                jawapan = "La la la~ 🎵 Suara saya tak sedap, awak sajalah nyanyi!";
-            } else {
-                jawapan = "Wah, menarik tu! Cerita lagi, saya suka dengar. 🤩";
+            let pengirimRawak = kawanKampung[Math.floor(Math.random() * kawanKampung.length)];
+            let ayatRawak = responUmum[Math.floor(Math.random() * responUmum.length)];
+
+            // Logic sikit supaya nampak real
+            if (ayatKita.includes("salam") || ayatKita.includes("hai")) {
+                ayatRawak = "Waalaikumussalam sahabat!";
+            } else if (ayatKita.includes("sihat")) {
+                ayatRawak = "Alhamdulillah sihat je ni.";
             }
 
-            tambahBelon(jawapan, 'robot');
+            tambahBelon(ayatRawak, pengirimRawak.nama, pengirimRawak.avatar, false);
         }
 
         function skrolKeBawah() {
