@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v17.4 (Compact List)</title>
+    <title>Sistem Pelawat & Kehadiran v18.0 (Live Timer)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -26,8 +26,10 @@
         .btn-pelawat { background: #27ae60; margin-top: 15px; } 
         .btn-cancel { background: #7f8c8d; margin-top: 10px; }
         
+        /* Panel Dashboard (Lock Nama) */
         #dashboardPanel { display: none; background: #e8f6f3; padding: 20px; border-radius: 15px; border: 2px solid #1abc9c; margin-bottom: 20px; }
         .user-welcome { font-size: 18px; font-weight: bold; color: #16a085; margin-bottom: 5px; display: block;}
+        .locked-msg { font-size: 10px; color: #7f8c8d; margin-bottom: 15px; font-style: italic; }
         
         #pelawatPanel { display: none; border: 2px dashed #27ae60; padding: 15px; border-radius: 15px; background: #f0fdf4; margin-bottom: 20px; }
         .cam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
@@ -38,15 +40,15 @@
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
         .list-container { text-align: left; margin-top: 10px; max-height: 300px; overflow-y: auto; }
         
-        /* --- CSS YANG DIKEMASKINI UNTUK LIST PELAWAT (LEBIH KEMAS) --- */
+        /* --- CSS LIST YANG DIKEMASKINI --- */
         .user-card { 
             background: #f9f9f9; 
-            padding: 8px 12px; /* Padding lebih kecil supaya tak tebal */
+            padding: 10px; 
             border-bottom: 1px solid #eee; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            border-left: 4px solid #1e3c72; /* Border tepi lebih halus */
+            border-left: 4px solid #1e3c72; 
             border-radius: 6px; 
             margin-bottom: 6px; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -62,18 +64,30 @@
         }
 
         .user-info strong {
-            font-size: 14px; /* Saiz nama sederhana */
+            font-size: 14px; 
             color: #2c3e50;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            line-height: 1.2;
         }
 
-        .user-info small {
-            font-size: 11px; /* Saiz detail kecil */
+        .user-details {
+            font-size: 11px;
             color: #7f8c8d;
             margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .live-timer {
+            color: #e67e22;
+            font-weight: bold;
+            font-family: monospace;
+            background: #fffcf5;
+            padding: 1px 4px;
+            border-radius: 4px;
+            border: 1px solid #fae5d3;
         }
 
         .list-actions { 
@@ -85,24 +99,24 @@
         
         .icon-btn { 
             cursor: pointer; 
-            font-size: 18px; /* Ikon tak terlalu besar */
-            padding: 5px; 
+            font-size: 16px; 
+            width: 30px;
+            height: 30px;
             border-radius: 5px;
             display: flex;
             align-items: center;
             justify-content: center;
             background: #fff;
             border: 1px solid #eee;
+            transition: background 0.2s;
         }
         .icon-btn:hover { background: #eee; }
         
-        /* CSS UNTUK MODAL GAMBAR */
         #imageModal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; }
         .modal-content { margin: auto; display: block; max-width: 90%; max-height: 80%; border-radius: 10px; border: 2px solid white; }
         .close-modal { position: absolute; top: 20px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer; }
 
         #connectionStatus { position: absolute; top: 0; left: 0; width: 100%; padding: 5px; font-size: 10px; font-weight: bold; color: white; display: none; border-radius: 20px 20px 0 0; }
-        .status-offline { background: #c0392b; }
         #warningBox { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #c0392b; color: white; padding: 15px; text-align: center; z-index: 9999; font-weight: bold; }
     </style>
 </head>
@@ -110,7 +124,6 @@
 
     <div id="warningBox">⚠️ SILA KEMBALI KE KAWASAN SEKOLAH!</div>
 
-    <!-- MODAL UNTUK LIHAT GAMBAR -->
     <div id="imageModal">
         <span class="close-modal" onclick="closeModal()">&times;</span>
         <img class="modal-content" id="imgFull">
@@ -131,17 +144,20 @@
         
         <div id="statusText" style="font-size:11px; font-weight:bold; margin-bottom:10px; color: gray;">📡 Mencari GPS...</div>
 
+        <!-- PANEL DASHBOARD (LOCKED NAME) -->
         <div id="dashboardPanel">
             <span class="user-welcome">👤 <span id="sessionName">--</span></span>
+            <div class="locked-msg">Akaun ini dikunci pada peranti ini.</div>
             <p style="margin:0 0 10px 0; font-size:12px; color:#666;">Status: BERTUGAS</p>
             
             <textarea id="alasanKeluar" placeholder="⚠️ ANDA BALIK AWAL. SILA NYATAKAN SEBAB:"></textarea>
             
-            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR</button>
+            <button id="btnKeluar" class="btn btn-keluar" onclick="hantarKeluar()">DAFTAR KELUAR (DIRI SENDIRI)</button>
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #bdc3c7;">
-            <button class="btn btn-pelawat" onclick="showPelawatForm()">➕ DAFTAR PELAWAT BARU</button>
+            <button class="btn btn-pelawat" onclick="showPelawatForm()">➕ BANTU DAFTAR PELAWAT</button>
         </div>
 
+        <!-- BORANG DAFTAR MASUK (HANYA MUNCUL JIKA BELUM LOGIN) -->
         <div id="defaultForm">
             <select id="kategori" onchange="checkKategori(); triggerAlasanMasuk();">
                 <option value="" disabled selected>-- PILIH KATEGORI --</option>
@@ -157,6 +173,7 @@
             <button id="btnMainSubmit" class="btn" onclick="hantarMasuk()">DAFTAR MASUK</button>
         </div>
 
+        <!-- PANEL PELAWAT -->
         <div id="pelawatPanel">
             <h3 style="color:#27ae60; margin:0;">📸 MOD PELAWAT</h3>
             <p style="font-size:11px; color:#666;">Sila ambil gambar & isi nama pelawat.</p>
@@ -185,7 +202,7 @@
         </div>
         <div id="listContainer" class="list-container">Memuatkan...</div>
         
-        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem</p>
+        <p style="font-size:10px; color:#aaa; margin-top:20px; cursor:pointer;" onclick="resetSesi()">⚠️ Reset Sistem (Admin)</p>
     </div>
 
 <script>
@@ -199,6 +216,7 @@
     let isInZone = false; 
     let lastLat = 0, lastLng = 0;
     let currentList = []; 
+    let timerInterval = null;
 
     window.onload = function() {
         startClock();
@@ -208,6 +226,8 @@
         fetchConfig();
         getHijriDate();
         setInterval(triggerAlasanKeluar, 5000); 
+        // Mulakan timer live update setiap saat
+        setInterval(updateLiveTimers, 1000);
     };
 
     function fetchConfig() {
@@ -258,6 +278,7 @@
 
         document.getElementById('btnMainSubmit').disabled = true;
         sendData({ action: "MASUK", passcode: PASSCODE, nama: nama, kategori: kat, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: now.toISOString() }, () => {
+            // Simpan sesi untuk lock nama di telefon ini
             localStorage.setItem('ehadir_session', JSON.stringify({nama: nama, kategori: kat, date: now.toISOString().slice(0,10)}));
             location.reload();
         });
@@ -305,16 +326,12 @@
         });
     }
 
+    // Fungsi ini untuk butang 'X' dalam list (Perlu Passcode Admin)
     function keluarManual(namaUser) {
-        let pass = prompt("⚠️ KESELAMATAN: Masukkan PASSCODE ADMIN untuk keluarkan " + namaUser + ":");
+        let pass = prompt("⚠️ ADMIN SAHAJA: Masukkan PASSCODE untuk keluarkan " + namaUser + ":");
         
         if (pass !== PASSCODE) {
             alert("⛔ Kata laluan salah! Akses ditolak.");
-            return;
-        }
-
-        if (lastLat === 0 || lastLng === 0) {
-            alert("Sila tunggu GPS dikesan dahulu.");
             return;
         }
 
@@ -365,29 +382,45 @@
         } return null;
     }
 
-    function kiraTempoh(waktuMasukStr) {
-        if (!waktuMasukStr) return "";
-        let parts = waktuMasukStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
-        if (!parts) return "";
+    // Fungsi untuk menukar string masa (cth: "7:30 AM") ke objek Date hari ini
+    function convertToDateObject(timeStr) {
+        if (!timeStr) return null;
+        let parts = timeStr.match(/(\d+):(\d+)(?::(\d+))?\s*(AM|PM)/i);
+        if (!parts) return null;
 
-        let jamMasuk = parseInt(parts[1]);
-        let minitMasuk = parseInt(parts[2]);
+        let h = parseInt(parts[1]);
+        let m = parseInt(parts[2]);
         let ampm = parts[4].toUpperCase();
 
-        if (ampm === "PM" && jamMasuk < 12) jamMasuk += 12;
-        if (ampm === "AM" && jamMasuk === 12) jamMasuk = 0;
+        if (ampm === "PM" && h < 12) h += 12;
+        if (ampm === "AM" && h === 12) h = 0;
 
-        let dateMasuk = new Date();
-        dateMasuk.setHours(jamMasuk, minitMasuk, 0, 0);
+        let d = new Date();
+        d.setHours(h, m, 0, 0);
+        return d;
+    }
 
-        let sekarang = new Date();
-        let bezaMs = sekarang - dateMasuk;
-        if (bezaMs < 0) bezaMs = 0;
+    // Fungsi update live timer pada DOM
+    function updateLiveTimers() {
+        let timers = document.querySelectorAll('.live-timer');
+        let now = new Date();
 
-        let jam = Math.floor(bezaMs / (1000 * 60 * 60));
-        let minit = Math.floor((bezaMs % (1000 * 60 * 60)) / (1000 * 60));
+        timers.forEach(el => {
+            let masukStr = el.getAttribute('data-masuk');
+            let masukDate = convertToDateObject(masukStr);
+            
+            if (masukDate) {
+                let diff = now - masukDate;
+                if (diff < 0) diff = 0;
 
-        return `${jam}j ${minit}m`;
+                let hours = Math.floor(diff / (1000 * 60 * 60));
+                let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                // Format: 1j 30m 15s
+                el.innerText = `${hours}j ${minutes}m ${seconds}s`;
+            }
+        });
     }
 
     function startRadar() {
@@ -405,7 +438,17 @@
 
     function calcDist(a,b,c,d){var R=6371e3,x=a*Math.PI/180,y=c*Math.PI/180,k=(c-a)*Math.PI/180,l=(d-b)*Math.PI/180,z=Math.sin(k/2)*Math.sin(k/2)+Math.cos(x)*Math.cos(y)*Math.sin(l/2)*Math.sin(l/2);return R*2*Math.atan2(Math.sqrt(z),Math.sqrt(1-z));}
     function startClock(){setInterval(()=>{let n=new Date();document.getElementById('clockDisplay').innerText=n.toLocaleTimeString('en-US',{hour12:true,hour:"2-digit",minute:"2-digit"});document.getElementById('dateDisplay').innerText=n.toLocaleDateString('ms-MY');},1000);}
-    function checkSession() { let s = JSON.parse(localStorage.getItem('ehadir_session')); if(s && s.date === new Date().toISOString().slice(0,10)) { document.getElementById('defaultForm').style.display = 'none'; document.getElementById('dashboardPanel').style.display = 'block'; document.getElementById('sessionName').innerText = s.nama; triggerAlasanKeluar(); } }
+    
+    function checkSession() { 
+        let s = JSON.parse(localStorage.getItem('ehadir_session')); 
+        if(s && s.date === new Date().toISOString().slice(0,10)) { 
+            // Jika ada sesi, sembunyikan borang utama, tunjuk dashboard
+            document.getElementById('defaultForm').style.display = 'none'; 
+            document.getElementById('dashboardPanel').style.display = 'block'; 
+            document.getElementById('sessionName').innerText = s.nama; 
+            triggerAlasanKeluar(); 
+        } 
+    }
     
     function loadList() { 
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) })
@@ -416,28 +459,34 @@
             let h = ""; 
             
             currentList.forEach((i, idx) => { 
-                // Ikon Gambar (hanya jika ada foto)
-                let imgBtn = i.foto ? `<span class="icon-btn" onclick="viewImage(${idx})" title="Lihat Gambar">🖼️</span>` : '';
+                // 1. Ikon Gambar: HANYA untuk PELAWAT
+                let imgBtn = "";
+                if (i.kategori === "PELAWAT" && i.foto) {
+                    imgBtn = `<span class="icon-btn" onclick="viewImage(${idx})" title="Lihat Gambar">🖼️</span>`;
+                }
                 
-                // Ikon Pangkah (Keluar)
-                let xBtn = `<span class="icon-btn" style="color:#c0392b;" onclick="keluarManual('${i.nama}')" title="Daftar Keluar">❌</span>`;
+                // 2. Ikon Pangkah (Keluar Manual)
+                let xBtn = `<span class="icon-btn" style="color:#c0392b; border-color:#fadbd8;" onclick="keluarManual('${i.nama}')" title="Daftar Keluar">❌</span>`;
                 
                 let actionBtns = `<div class="list-actions">${imgBtn}${xBtn}</div>`;
 
-                // Kira tempoh masa
-                let masaMasuk = i.jam || "--:--";
-                let tempoh = kiraTempoh(masaMasuk);
-                let displayTempoh = tempoh ? ` | ⏱️ ${tempoh}` : "";
-
+                // 3. Masa Masuk untuk Live Timer
+                let masaMasuk = i.jam || "";
+                
+                // Susunan: NAMA > PEKERJAAN > TIMER > ICON GAMBAR > ICON PANGKAH
                 h += `<div class="user-card">
                         <div class="user-info">
                             <strong>${i.nama}</strong>
-                            <small>${i.kategori} | ${masaMasuk}${displayTempoh}</small>
+                            <div class="user-details">
+                                <span>${i.kategori}</span>
+                                <span class="live-timer" data-masuk="${masaMasuk}">Mengira...</span>
+                            </div>
                         </div>
                         ${actionBtns}
                       </div>`; 
             }); 
             document.getElementById('listContainer').innerHTML = h || "Tiada rekod."; 
+            updateLiveTimers(); // Update terus lepas load
         }); 
     }
 
@@ -462,4 +511,3 @@
 </script>
 </body>
 </html>
-
