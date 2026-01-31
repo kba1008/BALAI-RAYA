@@ -3,358 +3,417 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Kampung Kuala Selama</title>
-    <!-- Panggil otak PeerJS -->
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <title>Sembang Pintar V2 - Cikgu Naim</title>
     <style>
+        /* CSS: Gaya Rupa Paras */
+        
         body {
-            font-family: 'Verdana', sans-serif;
-            background-color: #81ecec;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #d1d8e0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            overflow: hidden; /* Elak scroll body */
         }
 
-        #app-container {
-            width: 400px;
-            height: 650px;
-            background-color: #fff;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        /* --- SKRIN DAFTAR --- */
+        .skrin-daftar {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 10; /* Duduk paling atas */
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            border: 5px solid #00cec9;
-        }
-
-        /* SKRIN MULA */
-        #login-screen {
-            background-color: #fab1a0;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            padding: 20px;
-            text-align: center;
-        }
-
-        h1 { color: #d63031; margin-bottom: 5px; font-size: 24px; }
-        p { color: #2d3436; font-size: 14px; margin-bottom: 20px; }
-
-        input {
-            padding: 15px;
-            border-radius: 30px;
-            border: none;
-            width: 80%;
-            text-align: center;
-            font-size: 16px;
-            margin-bottom: 15px;
-            outline: none;
-            box-shadow: 0 4px 0 #e17055;
-        }
-
-        .btn-masuk {
-            padding: 15px 40px;
-            background-color: #00b894;
+            justify-content: center;
             color: white;
-            border: none;
-            border-radius: 30px;
-            font-weight: bold;
-            font-size: 18px;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #00896f;
-            transition: transform 0.1s;
+            transition: transform 0.5s ease;
         }
 
-        .btn-masuk:active { transform: translateY(4px); box-shadow: none; }
-
-        /* SKRIN CHAT */
-        #chat-screen {
-            display: none; /* Sorok dulu */
-            flex-direction: column;
-            height: 100%;
-        }
-
-        #header {
-            background-color: #00cec9;
-            color: white;
-            padding: 15px;
+        .kad-daftar {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 20px;
             text-align: center;
-            font-weight: bold;
-        }
-
-        #chat-box {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background-color: #dfe6e9;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .message {
-            padding: 10px 15px;
-            border-radius: 15px;
-            max-width: 80%;
-            font-size: 14px;
-            position: relative;
-            word-wrap: break-word;
-        }
-
-        .my-msg {
-            align-self: flex-end;
-            background-color: #fdcb6e;
             color: #333;
-            border-bottom-right-radius: 2px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
 
-        .other-msg {
-            align-self: flex-start;
-            background-color: white;
-            border: 1px solid #b2bec3;
-            border-bottom-left-radius: 2px;
-        }
-
-        .system-msg {
-            align-self: center;
-            background-color: #b2bec3;
-            color: white;
-            font-size: 11px;
-            padding: 5px 10px;
+        .grid-avatar {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 20px 0;
+            padding: 10px;
+            background: #f0f0f0;
             border-radius: 10px;
         }
 
-        .sender-name {
-            font-size: 10px;
-            color: #636e72;
-            display: block;
-            margin-bottom: 3px;
+        .pilihan-avatar {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            transition: 0.2s;
+            background: white;
+        }
+
+        .pilihan-avatar:hover { transform: scale(1.2); }
+        .pilihan-avatar.dipilih { border-color: #764ba2; background: #e0d4fc; }
+
+        .input-nama {
+            width: 80%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .btn-mula {
+            background: #764ba2;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
             font-weight: bold;
         }
+        
+        .btn-mula:hover { background: #5b3a7d; }
 
-        #input-area {
-            padding: 10px;
-            background: white;
+        /* --- SKRIN CHAT (Sama macam dulu tapi upgrade sikit) --- */
+        .kotak-chat {
+            width: 100%;
+            max-width: 450px;
+            height: 90vh; /* Hampir penuh skrin */
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
             display: flex;
-            border-top: 1px solid #ccc;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #ccc;
+            position: relative;
         }
 
-        #msg-input {
+        .kepala-chat {
+            background-color: #075e54;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar-kecil { font-size: 30px; }
+        .info-user { flex: 1; }
+        .nama-user { font-weight: bold; display: block; }
+        .status { font-size: 12px; opacity: 0.8; }
+
+        .ruang-mesej {
             flex: 1;
+            padding: 20px;
+            background-color: #e5ddd5;
+            background-image: url('https://www.transparenttextures.com/patterns/cubes.png'); /* Corak halus */
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .baris-mesej {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            animation: muncul 0.3s ease;
+        }
+
+        .baris-mesej.kanan { flex-direction: row-reverse; }
+
+        .muka-pengirim { font-size: 24px; margin-bottom: 5px; }
+
+        .belon {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            font-size: 15px;
+            line-height: 1.4;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .belon-kiri { background-color: white; border-bottom-left-radius: 2px; }
+        .belon-kanan { background-color: #dcf8c6; border-bottom-right-radius: 2px; }
+
+        @keyframes muncul {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .ruang-input {
             padding: 10px;
-            border-radius: 20px;
-            border: 2px solid #fab1a0;
+            background-color: #f0f0f0;
+            display: flex;
+            gap: 5px;
+            border-top: 1px solid #ddd;
+            align-items: center;
+            position: relative;
+        }
+
+        .btn-emoji {
+            font-size: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* Popup Emoji Picker */
+        .kotak-emoji {
+            position: absolute;
+            bottom: 60px;
+            left: 10px;
+            width: 250px;
+            height: 200px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            display: none; /* Sorok dulu */
+            grid-template-columns: repeat(6, 1fr);
+            overflow-y: auto;
+            padding: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .item-emoji {
+            font-size: 20px;
+            cursor: pointer;
+            text-align: center;
+            padding: 5px;
+        }
+        .item-emoji:hover { background: #eee; border-radius: 5px; }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 25px;
             outline: none;
         }
 
-        #send-btn {
-            background: #0984e3;
+        button.hantar {
+            padding: 10px 15px;
+            background-color: #075e54;
             color: white;
             border: none;
-            width: 40px;
-            height: 40px;
             border-radius: 50%;
-            margin-left: 10px;
             cursor: pointer;
-            font-size: 18px;
+            width: 45px; height: 45px;
+            display: flex; justify-content: center; align-items: center;
         }
+
     </style>
 </head>
 <body>
 
-    <div id="app-container">
-        
-        <!-- Halaman Login -->
-        <div id="login-screen">
-            <h1>Kampung Kuala Selama</h1>
-            <p>Masukkan nama samaran untuk masuk ke balai raya.</p>
-            <input type="text" id="username" placeholder="Nama Panggilan (Contoh: Bobo)">
-            <button class="btn-masuk" onclick="masukKampung()">MASUK SEKARANG</button>
-            <p id="status-loading" style="margin-top:20px; color:#d63031; font-weight:bold;"></p>
-        </div>
-
-        <!-- Halaman Chat -->
-        <div id="chat-screen">
-            <div id="header">Balai Raya ??</div>
-            <div id="chat-box"></div>
-            <div id="input-area">
-                <input type="text" id="msg-input" placeholder="Tulis pesan..." onkeypress="tekanEnter(event)">
-                <button id="send-btn" onclick="hantarMesej()">?</button>
+    <!-- SKRIN DAFTAR (Overlay) -->
+    <div class="skrin-daftar" id="skrinDaftar">
+        <div class="kad-daftar">
+            <h2>Daftar Masuk</h2>
+            <p>Sila pilih Avatar & Nama:</p>
+            
+            <div class="grid-avatar" id="tempatAvatar">
+                <!-- Avatar akan diisi oleh JavaScript -->
             </div>
+
+            <input type="text" id="inputNamaUser" class="input-nama" placeholder="Nama Panggilan..." maxlength="15">
+            <br>
+            <button class="btn-mula" onclick="masukChat()">MULA CHAT 🚀</button>
+        </div>
+    </div>
+
+    <!-- SKRIN CHAT (Utama) -->
+    <div class="kotak-chat">
+        <div class="kepala-chat">
+            <div class="avatar-kecil">🤖</div>
+            <div class="info-user">
+                <span class="nama-user">Robot Cikgu Naim</span>
+                <span class="status">Online</span>
+            </div>
+            <button class="btn-emoji" onclick="location.reload()" title="Keluar">🚪</button>
+        </div>
+        
+        <div class="ruang-mesej" id="paparanMesej">
+            <!-- Mesej akan masuk sini -->
         </div>
 
+        <!-- Popup Emoji -->
+        <div class="kotak-emoji" id="popupEmoji"></div>
+
+        <div class="ruang-input">
+            <button class="btn-emoji" onclick="tukarEmoji()">😀</button>
+            <input type="text" id="inputAyat" placeholder="Taip mesej..." onkeypress="tekanEnter(event)">
+            <button class="hantar" onclick="hantarMesej()">➤</button>
+        </div>
     </div>
 
     <script>
-        // --- KONFIGURASI PENTING ---
-        // Ini adalah ID Bilik Tetap. Semua orang akan cuba sambung ke sini.
-        const ROOM_ID = "kuala-selama-room-v1"; 
+        // --- DATA ---
+        let avatarPilihan = "😎"; // Default
+        let namaUser = "Adik";
+        
+        // Senarai Emoji untuk Avatar (Kita guna kod unicode range untuk jimat masa)
+        // Cikgu buat array manual sikit campur loop
+        const senaraiAvatar = [
+            "👦","👧","👨","👩","👴","👵","👶","👱","👮","👷","👸","👳","👲","👰","👼","🎅","🧙","🧚","🧛","🧜","🧝","🧞","🧟","🙍","🙎","🙅","🙆","💁","🙋","🙇","🤦","🤷","💆","💇","🚶","🏃","💃","🕺","👯","🧖","🧗","🧘","🛀","🛌","🕴","🗣","👤","👥","🤺","🏇","⛷","🏂","🏌","🏄","🚣","🏊","⛹","🏋","🚴","🚵","🏎","🏍","🤸","🤼","🤽","🤾","🤹","👫","👬","👭","💏","👩‍❤️‍💋‍👨","👨‍❤️‍💋‍👨","👩‍❤️‍💋‍👩","💑","👩‍❤️‍👨","👨‍❤️‍👨","👩‍❤️‍👩","👪","👨‍👩‍👦","👨‍👩‍👧","👨‍👩‍👧‍👦","👨‍👩‍👦‍👦","👨‍👩‍👧‍👧","👨‍👨‍👦","👨‍👨‍👧","👨‍👨‍👧‍👦","👨‍👨‍👦‍👦","👨‍👨‍👧‍👧","👩‍👩‍👦","👩‍👩‍👧","👩‍👩‍👧‍👦","👩‍👩‍👦‍👦","👩‍👩‍👧‍👧","🤳","💪","👈","👉","☝","👆","🖕","👇","✌","🤞","🖖","🤘","🤙","🖐","✋","👌","👍","👎","✊","👊","🤛","🤜","🤚","👋","🤟","✍","👏","👐","🙌","🤲","🙏","🤝","💅","👂","👃","👣","👀","👁","🧠","👅","👄","💋","💘","❤️","💓","💔","💖","💗","💙","💚","💛","🧡","💜","🖤","💝","💞","💟","❣️","💌","💤","💢","💣","💥","💦","💨","💫","💬","🗨","🗯","💭","🕳","👓","🕶","👔","👕","👖","🧣","🧤","🧥","🧦","👗","👘","👙","👚","👛","👜","👝","🛍","🎒","👞","👟","👠","👡","👢","👑","👒","🎩","🎓","🧢","⛑","📿","💄","💍","💎"
+        ];
 
-        let peer = null;
-        let myName = "";
-        let amIHost = false; // Adakah saya Tok Ketua?
-        let connections = []; // Senarai penduduk (hanya untuk Tok Ketua)
-        let hostConnection = null; // Talian ke Tok Ketua (hanya untuk Penduduk)
+        // --- FUNGSI MULA (SETUP) ---
+        
+        // 1. Jana Grid Avatar
+        const bekasAvatar = document.getElementById('tempatAvatar');
+        
+        senaraiAvatar.forEach(emoji => {
+            const btn = document.createElement('div');
+            btn.className = 'pilihan-avatar';
+            btn.innerText = emoji;
+            btn.onclick = function() {
+                pilihAvatarIni(this, emoji);
+            };
+            bekasAvatar.appendChild(btn);
+        });
 
-        function masukKampung() {
-            const inputName = document.getElementById('username').value.trim();
-            if (inputName === "") {
-                alert("Sila letak nama dulu!");
-                return;
+        // 2. Jana Popup Emoji untuk Chat
+        const popupEmoji = document.getElementById('popupEmoji');
+        senaraiAvatar.forEach(emoji => {
+            const span = document.createElement('div');
+            span.className = 'item-emoji';
+            span.innerText = emoji;
+            span.onclick = function() {
+                tambahEmojiKeInput(emoji);
+            };
+            popupEmoji.appendChild(span);
+        });
+
+        // --- LOGIK DAFTAR ---
+
+        function pilihAvatarIni(elemen, emoji) {
+            // Buang class 'dipilih' dari semua, tambah pada yang diklik
+            document.querySelectorAll('.pilihan-avatar').forEach(el => el.classList.remove('dipilih'));
+            elemen.classList.add('dipilih');
+            avatarPilihan = emoji;
+        }
+
+        function masukChat() {
+            const input = document.getElementById('inputNamaUser');
+            if (input.value.trim() !== "") {
+                namaUser = input.value;
+                // Hilangkan skrin daftar (slide ke atas)
+                document.getElementById('skrinDaftar').style.transform = "translateY(-100%)";
+                
+                // Mula chat
+                setTimeout(() => {
+                    tambahBelon("Hai " + namaUser + "! Selamat datang. Saya suka avatar " + avatarPilihan + " awak tu!", 'robot');
+                }, 500);
+            } else {
+                alert("Sila masukkan nama dulu ya!");
             }
-            myName = inputName;
-            document.getElementById('status-loading').innerText = "Sedang mencari jalan ke kampung...";
-            
-            // Langkah 1: Cuba jadi Tok Ketua dulu (Guna ID Bilik Tetap)
-            peer = new Peer(ROOM_ID);
-
-            // Jika berjaya jadi Tok Ketua (ID belum diambil orang)
-            peer.on('open', function(id) {
-                amIHost = true;
-                bukaChatScreen();
-                tambahMesejSistem("Tahniah! Awak adalah TOK KETUA. Orang lain akan masuk ke bilik awak.");
-            });
-
-            // Jika gagal (ID dah ada orang guna), maksudnya Tok Ketua dah ada.
-            // Kita jadi Penduduk biasa.
-            peer.on('error', function(err) {
-                if (err.type === 'unavailable-id') {
-                    // ID bilik dah penuh, maknanya bilik dah wujud.
-                    // Kita buat ID baru random, dan sambung ke Tok Ketua.
-                    peer = new Peer(); // ID rawak
-                    peer.on('open', function(id) {
-                        sambungKeTokKetua();
-                    });
-                } else {
-                    alert("Ralat Internet: " + err);
-                }
-            });
-
-            // Setup asas Peer (untuk terima connection)
-            setTimeout(() => setupPeerEvents(), 1000);
         }
 
-        function setupPeerEvents() {
-            peer.on('connection', function(conn) {
-                // Jika saya Tok Ketua, ada orang baru masuk!
-                if (amIHost) {
-                    connections.push(conn);
-                    
-                    conn.on('data', function(data) {
-                        // Tok Ketua terima mesej
-                        terimaMesej(data);
-                        // Tok Ketua kena sebarkan (Broadcast) ke orang lain
-                        sebarkanMesej(data, conn.peer); 
-                    });
+        // --- LOGIK CHAT ---
 
-                    conn.on('open', function() {
-                        conn.send({ type: 'system', text: 'Selamat datang ke Kampung Kuala Selama!' });
-                    });
-                    
-                    conn.on('close', function() {
-                        // Buang dari senarai jika keluar
-                        connections = connections.filter(c => c.peer !== conn.peer);
-                    });
-                }
-            });
-        }
-
-        // Fungsi untuk Penduduk Biasa
-        function sambungKeTokKetua() {
-            hostConnection = peer.connect(ROOM_ID);
-            
-            hostConnection.on('open', function() {
-                bukaChatScreen();
-                tambahMesejSistem("Berjaya masuk kampung! Boleh mula berborak.");
-                // Beritahu nama kita
-                hostConnection.send({ type: 'join', name: myName });
-            });
-
-            hostConnection.on('data', function(data) {
-                terimaMesej(data);
-            });
-
-            hostConnection.on('close', function() {
-                alert("Tok Ketua dah tutup balai raya (Left). Sila refresh.");
-                location.reload();
-            });
-        }
-
-        // UI Logic
-        function bukaChatScreen() {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('chat-screen').style.display = 'flex';
-        }
+        const paparan = document.getElementById('paparanMesej');
+        const inputAyat = document.getElementById('inputAyat');
 
         function hantarMesej() {
-            const input = document.getElementById('msg-input');
-            const teks = input.value.trim();
-            if (!teks) return;
+            const teks = inputAyat.value.trim();
+            if (teks === "") return;
 
-            // Papar mesej sendiri
-            paparkanMesejUI(myName, teks, true);
+            // Tambah mesej adik
+            tambahBelon(teks, 'adik');
+            inputAyat.value = '';
+            skrolKeBawah();
+            popupEmoji.style.display = 'none'; // Tutup emoji lepas hantar
 
-            const dataPaket = { type: 'chat', name: myName, text: teks };
+            // Robot balas
+            setTimeout(() => {
+                jawabMesej(teks);
+            }, 1000);
+        }
 
-            if (amIHost) {
-                // Kalau Tok Ketua, sebarkan pada semua
-                sebarkanMesej(dataPaket, null); 
+        function tambahBelon(ayat, siapa) {
+            // Tentukan class dan avatar ikut siapa yang hantar
+            let kelasBaris = (siapa === 'adik') ? 'baris-mesej kanan' : 'baris-mesej';
+            let kelasBelon = (siapa === 'adik') ? 'belon belon-kanan' : 'belon belon-kiri';
+            let muka = (siapa === 'adik') ? avatarPilihan : '🤖';
+
+            const html = `
+                <div class="${kelasBaris}">
+                    <div class="muka-pengirim">${muka}</div>
+                    <div class="${kelasBelon}">${ayat}</div>
+                </div>
+            `;
+            
+            paparan.insertAdjacentHTML('beforeend', html);
+            skrolKeBawah();
+        }
+
+        function jawabMesej(ayatAdik) {
+            let jawapan = "";
+            let ayat = ayatAdik.toLowerCase();
+
+            // Logik Mudah Robot
+            if (ayat.includes("hai") || ayat.includes("salam")) {
+                jawapan = "Waalaikumussalam! " + namaUser + " sihat ke hari ni?";
+            } else if (ayat.includes("sihat")) {
+                jawapan = "Alhamdulillah, baguslah tu! " + avatarPilihan;
+            } else if (ayat.includes("nama")) {
+                jawapan = "Nama saya Robo-Naim. Tapi nama awak " + namaUser + " kan?";
+            } else if (ayat.includes("bosan")) {
+                jawapan = "Jangan bosan! Cuba tekan butang emoji tu 😀 banyak benda menarik.";
+            } else if (ayat.includes("terima kasih")) {
+                jawapan = "Sama-sama sahabatku! 🤝";
             } else {
-                // Kalau Penduduk, hantar pada Tok Ketua je
-                hostConnection.send(dataPaket);
+                jawapan = "Maaf, saya tak faham ayat tu. Cuba cerita pasal hobi awak?";
             }
 
-            input.value = "";
+            tambahBelon(jawapan, 'robot');
         }
 
-        // Tok Ketua sebarkan mesej ke semua KECUALI pengirim asal
-        function sebarkanMesej(data, senderPeerId) {
-            connections.forEach(conn => {
-                if (conn.peer !== senderPeerId && conn.open) {
-                    conn.send(data);
-                }
-            });
+        function skrolKeBawah() {
+            paparan.scrollTop = paparan.scrollHeight;
         }
 
-        function terimaMesej(data) {
-            if (data.type === 'chat') {
-                paparkanMesejUI(data.name, data.text, false);
-            } else if (data.type === 'system') {
-                tambahMesejSistem(data.text);
-            } else if (data.type === 'join') {
-                tambahMesejSistem(data.name + " baru sampai di kampung!");
-                // Kalau saya host, saya kena broadcast info ni
-                if (amIHost) sebarkanMesej({ type: 'system', text: data.name + " baru masuk!" }, null);
+        function tekanEnter(event) {
+            if (event.key === "Enter") hantarMesej();
+        }
+
+        // --- FUNGSI EMOJI PICKER ---
+        
+        function tukarEmoji() {
+            if (popupEmoji.style.display === 'grid') {
+                popupEmoji.style.display = 'none';
+            } else {
+                popupEmoji.style.display = 'grid';
             }
         }
 
-        function paparkanMesejUI(nama, teks, isMe) {
-            const box = document.getElementById('chat-box');
-            const div = document.createElement('div');
-            div.className = isMe ? 'message my-msg' : 'message other-msg';
-            div.innerHTML = `<span class="sender-name">${nama}</span>${teks}`;
-            box.appendChild(div);
-            box.scrollTop = box.scrollHeight;
-        }
-
-        function tambahMesejSistem(teks) {
-            const box = document.getElementById('chat-box');
-            const div = document.createElement('div');
-            div.className = 'message system-msg';
-            div.innerText = teks;
-            box.appendChild(div);
-            box.scrollTop = box.scrollHeight;
-        }
-
-        function tekanEnter(e) {
-            if (e.key === "Enter") hantarMesej();
+        function tambahEmojiKeInput(emoji) {
+            inputAyat.value += emoji;
+            inputAyat.focus();
         }
 
     </script>
-</body>
 
+</body>
 </html>
