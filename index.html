@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Pelawat & Kehadiran v16.0</title>
+    <title>Sistem Pelawat & Kehadiran v17.2 (Fixed)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1e3c72">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
@@ -110,7 +110,6 @@
             <h3 style="color:#27ae60; margin:0;">📸 MOD PELAWAT</h3>
             <p style="font-size:11px; color:#666;">Sila ambil gambar & isi nama pelawat.</p>
             
-            <!-- INPUT DIUBAH MENJADI NAMA PELAWAT -->
             <input type="text" id="namaPelawatInput" placeholder="NAMA PENUH PELAWAT" style="text-transform:uppercase;">
             
             <div class="cam-grid">
@@ -148,6 +147,7 @@
     let jamConfig = {}; 
     let isInZone = false; 
     let lastLat = 0, lastLng = 0;
+    let currentList = []; 
 
     window.onload = function() {
         startClock();
@@ -214,41 +214,82 @@
 
     function hantarKeluar() {
         let session = JSON.parse(localStorage.getItem('ehadir_session'));
-        let alasan = document.getElementById('alasanKeluar').value;
         
-        if (document.getElementById('alasanKeluar').style.display === "block" && alasan.trim() === "") {
-            alert("Sila isi alasan balik awal!"); return;
+        // 1. Pastikan Sesi Wujud
+        if (!session || !session.nama) {
+            alert("Ralat Sesi: Sila tekan 'Reset Sistem' di bahagian bawah.");
+            return;
+        }
+
+        // 2. Pastikan GPS Telah Diperolehi
+        if (lastLat === 0 || lastLng === 0) {
+            alert("📡 GPS sedang dicari... Sila tunggu status menjadi 'DALAM KAWASAN' atau 'LUAR KAWASAN' sebelum daftar keluar.");
+            return;
+        }
+
+        let alasanInput = document.getElementById('alasanKeluar');
+        let alasanValue = alasanInput.value.trim();
+        
+        // 3. Logik Alasan: Jika kotak disembunyikan (balik on-time), set default text
+        if (alasanInput.style.display === "none" || alasanInput.style.display === "") {
+            alasanValue = "PULANG MENGIKUT WAKTU";
+        } else {
+            // Jika kotak dipaparkan (balik awal), wajib isi
+            if (alasanValue === "") {
+                alert("⚠️ Sila isi alasan balik awal!"); return;
+            }
         }
 
         if(!confirm("Daftar Keluar sekarang?")) return;
+        
         document.getElementById('btnKeluar').disabled = true;
-        sendData({ action: "KELUAR", passcode: PASSCODE, nama: session.nama, alasan: alasan, lat: lastLat, lng: lastLng, clientTime: new Date().toISOString() }, () => {
+        document.getElementById('btnKeluar').innerText = "SEDANG PROSES...";
+
+        // 4. Hantar Data (Pastikan nama UPPERCASE untuk matching)
+        sendData({ 
+            action: "KELUAR", 
+            passcode: PASSCODE, 
+            nama: session.nama.toUpperCase(), 
+            alasan: alasanValue, 
+            lat: lastLat,     
+            lng: lastLng,     
+            clientTime: new Date().toISOString() 
+        }, () => {
+            alert("✅ Berjaya Daftar Keluar!");
             localStorage.removeItem('ehadir_session');
             location.reload();
         });
     }
 
-    // FUNGSI CHECKOUT PELAWAT (ICON PANGKAH)
-    function keluarPelawat(namaPelawat) {
-        if(!confirm("Daftar keluar pelawat: " + namaPelawat + "?")) return;
+    function keluarManual(namaUser) {
+        let pass = prompt("⚠️ PERHATIAN: Sila masukkan PASSCODE ADMIN untuk keluarkan " + namaUser + ":");
         
+        if (pass !== PASSCODE) {
+            alert("⛔ Kata laluan salah! Anda tidak dibenarkan mengeluarkan pengguna ini.");
+            return;
+        }
+
+        if (lastLat === 0 || lastLng === 0) {
+            alert("Sila tunggu GPS dikesan dahulu.");
+            return;
+        }
+
         sendData({ 
             action: "KELUAR", 
             passcode: PASSCODE, 
-            nama: namaPelawat, 
-            alasan: "Pelawat Pulang", 
+            nama: namaUser, 
+            alasan: "Manual Logout by Admin", 
             lat: lastLat, 
             lng: lastLng, 
             clientTime: new Date().toISOString() 
         }, () => {
-            alert("Pelawat " + namaPelawat + " telah didaftar keluar.");
+            alert(namaUser + " telah didaftar keluar secara manual.");
             loadList(); 
         });
     }
 
     function hantarPelawat() {
         let foto = document.getElementById('base64Foto').value;
-        // Ambil nama dari input baru (namaPelawatInput)
         let namaPelawat = document.getElementById('namaPelawatInput').value.toUpperCase();
         
         if (!foto) { alert("Sila ambil gambar pelawat dahulu!"); return; }
@@ -257,11 +298,18 @@
         document.getElementById('btnPelawatSubmit').disabled = true;
         document.getElementById('btnPelawatSubmit').innerText = "SEDANG HANTAR...";
 
-        // Hantar nama pelawat sebagai 'nama' supaya masuk Column B
         sendData({ action: "MASUK", passcode: PASSCODE, kategori: "PELAWAT", nama: namaPelawat, fotoBase64: foto, lat: lastLat, lng: lastLng }, () => location.reload());
     }
 
-    function sendData(p, cb) { fetch(API_URL, { method: "POST", body: JSON.stringify(p) }).then(() => cb()).catch(() => cb()); }
+    function sendData(p, cb) { 
+        fetch(API_URL, { method: "POST", body: JSON.stringify(p) })
+        .then(() => cb())
+        .catch((e) => {
+            console.error("Ralat Network:", e);
+            // Tetap jalankan callback supaya UI tidak 'hang'
+            cb();
+        }); 
+    }
 
     function parseTime(t, r) {
         if (!t || t === "BEBAS") return null;
@@ -291,26 +339,18 @@
     function startClock(){setInterval(()=>{let n=new Date();document.getElementById('clockDisplay').innerText=n.toLocaleTimeString('en-US',{hour12:true,hour:"2-digit",minute:"2-digit"});document.getElementById('dateDisplay').innerText=n.toLocaleDateString('ms-MY');},1000);}
     function checkSession() { let s = JSON.parse(localStorage.getItem('ehadir_session')); if(s && s.date === new Date().toISOString().slice(0,10)) { document.getElementById('defaultForm').style.display = 'none'; document.getElementById('dashboardPanel').style.display = 'block'; document.getElementById('sessionName').innerText = s.nama; triggerAlasanKeluar(); } }
     
-    // FUNGSI LOAD LIST (DIKEMASKINI UNTUK BUTANG PANGKAH)
     function loadList() { 
         fetch(API_URL, { method: "POST", body: JSON.stringify({action: "GET_LIST", passcode: PASSCODE}) })
         .then(r => r.json())
         .then(res => { 
-            let l = res.data || res; 
-            document.getElementById('count').innerText = l.length; 
+            currentList = res.data || res; 
+            document.getElementById('count').innerText = currentList.length; 
             let h = ""; 
             
-            l.forEach(i => { 
-                let actionBtns = "";
-                
-                // Jika kategori PELAWAT, tunjuk butang gambar dan butang pangkah (X)
-                if(i.kategori === "PELAWAT") {
-                    let imgBtn = i.foto ? `<span class="icon-btn" onclick="viewImage('${i.foto}')">🖼️</span>` : '';
-                    // Butang Pangkah Merah untuk Check-out
-                    let xBtn = `<span class="icon-btn" style="color:red; font-weight:bold;" onclick="keluarPelawat('${i.nama}')" title="Daftar Keluar">❌</span>`;
-                    
-                    actionBtns = `<div class="list-actions">${imgBtn}${xBtn}</div>`;
-                }
+            currentList.forEach((i, idx) => { 
+                let imgBtn = i.foto ? `<span class="icon-btn" onclick="viewImage(${idx})">🖼️</span>` : '';
+                let xBtn = `<span class="icon-btn" style="color:red; font-weight:bold;" onclick="keluarManual('${i.nama}')" title="Daftar Keluar">❌</span>`;
+                let actionBtns = `<div class="list-actions">${imgBtn}${xBtn}</div>`;
 
                 h += `<div class="user-card">
                         <div style="padding-left:10px;">
@@ -324,10 +364,14 @@
         }); 
     }
 
-    function viewImage(url) {
-        document.getElementById('imgFull').src = url;
-        document.getElementById('imageModal').style.display = "flex";
+    function viewImage(index) {
+        let data = currentList[index];
+        if(data && data.foto) {
+            document.getElementById('imgFull').src = data.foto;
+            document.getElementById('imageModal').style.display = "flex";
+        }
     }
+
     function closeModal() {
         document.getElementById('imageModal').style.display = "none";
     }
