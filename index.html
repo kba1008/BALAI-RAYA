@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KAMPUNG KUALA SELAMA - Chat Room</title>
+    <!-- Pustaka MQTT untuk Chat Real-Time -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
         /* --- GAYA MODEN & 3D (GLASSMORPHISM) --- */
         body {
@@ -67,7 +69,6 @@
             overflow-y: auto;
             margin: 20px 0;
             padding: 10px;
-            /* Scrollbar halus */
             scrollbar-width: thin;
         }
 
@@ -79,7 +80,7 @@
             display: flex; justify-content: center; align-items: center;
             background: linear-gradient(145deg, #ffffff, #e6e6e6);
             border-radius: 15px;
-            box-shadow: 5px 5px 10px #bebebe, -5px -5px 10px #ffffff; /* Kesan timbul 3D */
+            box-shadow: 5px 5px 10px #bebebe, -5px -5px 10px #ffffff;
             transition: all 0.2s ease;
             border: 2px solid transparent;
         }
@@ -90,7 +91,7 @@
             border-color: #00d2ff;
             background: #e0f7fa;
             transform: scale(1.1);
-            box-shadow: inset 5px 5px 10px #b8ccce, inset -5px -5px 10px #ffffff; /* Kesan tenggelam bila pilih */
+            box-shadow: inset 5px 5px 10px #b8ccce, inset -5px -5px 10px #ffffff;
         }
 
         .input-nama {
@@ -149,12 +150,13 @@
 
         .avatar-kecil { 
             font-size: 40px; 
-            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3)); /* Bayang 3D */
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
         }
         
         .info-user { flex: 1; }
         .nama-room { font-weight: 800; font-size: 16px; display: block; letter-spacing: 0.5px; }
         .status { font-size: 12px; opacity: 0.8; color: #00d2ff; }
+        .status-connection { font-size: 10px; color: #00ff00; font-weight: bold; }
 
         .btn-keluar {
             background: rgba(255, 50, 50, 0.2);
@@ -189,7 +191,7 @@
         .muka-pengirim { 
             font-size: 32px; 
             margin-bottom: 5px; 
-            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3)); /* Efek 3D pada muka */
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
         }
 
         .belon {
@@ -201,6 +203,7 @@
             position: relative;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             color: #333;
+            word-wrap: break-word;
         }
 
         /* Belon Kiri (Kawan) - Gaya Putih 3D */
@@ -210,10 +213,11 @@
         }
         .nama-pengirim-kecil {
             font-size: 10px;
-            color: #666;
+            color: #e65100; /* Warna oren terang untuk nama kawan */
             margin-bottom: 3px;
             display: block;
             font-weight: bold;
+            text-transform: uppercase;
         }
 
         /* Belon Kanan (Kita) - Gaya Biru 3D */
@@ -356,6 +360,7 @@
             <div class="info-user">
                 <span class="nama-room">KAMPUNG KUALA SELAMA</span>
                 <span class="status">Ahli Kampung Online</span>
+                <div id="statusConnection" class="status-connection">Menyambung ke talian kampung...</div>
             </div>
             <button class="btn-keluar" onclick="location.reload()" title="Keluar">Keluar</button>
         </div>
@@ -375,16 +380,23 @@
     </div>
 
     <script>
+        // --- KONFIGURASI REAL-TIME (MQTT) ---
+        // Kita guna public broker percuma untuk sambungkan semua orang
+        const brokerUrl = 'wss://broker.emqx.io:8084/mqtt'; 
+        const topikChat = 'kampung/kuala/selama/chat/v1'; // Saluran unik kampung
+        let client;
+        let idUnik = 'user_' + Math.random().toString(16).substr(2, 8); // ID unik sementara
+
         // --- DATA ---
         let avatarPilihan = "😎"; 
         let namaUser = "Ahli Baru";
         
-        // Senarai Perkataan Terlarang (Pelbagai Bahasa)
+        // Senarai Perkataan Terlarang
         const senaraiCarutan = [
             "babi", "bodoh", "sial", "anjir", "fuck", "shit", "pukimak", "lancau", "kimak", "butoh", "pantat", "asshole", "bitch", "gila", "bongok", "bahlul"
         ];
 
-        // Senarai Avatar 3D Style
+        // Senarai Avatar 3D Style (Warna Warni)
         const senaraiAvatar = [
             "👦","👧","👱","👨‍🦱","👩‍🦰","🧔","🧕","👲","👮","🕵️","👷","🦸","🦹","🧙","🧚","🧛","🧜","🧝","🧞","🧟","👽","🤖","🦁","🐯","🐻","🐨","🐼","🐸","🐙","🦄"
         ];
@@ -392,6 +404,7 @@
         // --- SETUP AWAL ---
         const bekasAvatar = document.getElementById('tempatAvatar');
         const popupEmoji = document.getElementById('popupEmoji');
+        const statusConn = document.getElementById('statusConnection');
         
         // 1. Buat butang avatar daftar
         senaraiAvatar.forEach(emoji => {
@@ -427,31 +440,73 @@
             const input = document.getElementById('inputNamaUser');
             let namaTaip = input.value.trim();
 
-            // Validasi Nama
             if (namaTaip === "") {
                 alert("Sila masukkan nama samaran dulu!");
                 return;
             }
 
-            // Cek jika nama ada perkataan lucah
             if (cekCarutan(namaTaip)) {
                 tunjukAmaran("Nama tidak sopan tidak dibenarkan!");
                 input.value = "";
                 return;
             }
 
-            // Simulasi cek nama sama (Sebab tiada server sebenar, kita halang nama 'Admin' atau 'Robot')
-            if (namaTaip.toLowerCase() === "admin" || namaTaip.toLowerCase() === "robot") {
-                alert("Nama ini telah digunakan oleh sistem. Sila pilih nama lain.");
-                return;
-            }
-
             namaUser = namaTaip;
-            document.getElementById('skrinDaftar').style.transform = "translateY(-150%)"; // Naik atas
+            document.getElementById('skrinDaftar').style.transform = "translateY(-150%)"; 
             
-            setTimeout(() => {
-                tambahBelon("Selamat datang ke Kampung Kuala Selama, " + namaUser + "! Sila beradab sopan ya.", 'Sistem', '🤖');
-            }, 800);
+            // Mula sambungan ke Server
+            mulaSambunganMQTT();
+        }
+
+        // --- FUNGSI REAL-TIME (MQTT) ---
+        function mulaSambunganMQTT() {
+            statusConn.innerText = "Menghubungi satelit kampung...";
+            
+            client = mqtt.connect(brokerUrl);
+
+            client.on('connect', function () {
+                statusConn.innerText = "🟢 Talian Kampung Bersambung!";
+                statusConn.style.color = "#00ff00";
+                
+                // Langgan topik kampung
+                client.subscribe(topikChat, function (err) {
+                    if (!err) {
+                        // Hantar notifikasi masuk (pilihan)
+                        hantarData({
+                            jenis: 'info',
+                            mesej: namaUser + " telah masuk ke kampung."
+                        });
+                    }
+                });
+            });
+
+            client.on('message', function (topic, message) {
+                // Bila terima mesej dari orang lain
+                let data = JSON.parse(message.toString());
+                
+                if (data.idPengirim === idUnik) {
+                    // Ini mesej kita sendiri, jangan paparkan lagi sebab dah papar masa hantar
+                    return; 
+                }
+
+                if (data.jenis === 'chat') {
+                    tambahBelon(data.mesej, data.nama, data.avatar, false);
+                } else if (data.jenis === 'info') {
+                    // Boleh buat notifikasi kecil jika mahu
+                    console.log(data.mesej);
+                }
+            });
+            
+            client.on('offline', function() {
+                statusConn.innerText = "🔴 Talian Terputus...";
+                statusConn.style.color = "red";
+            });
+        }
+
+        function hantarData(objekData) {
+            // Tambah ID pengirim supaya tak terima mesej sendiri
+            objekData.idPengirim = idUnik;
+            client.publish(topikChat, JSON.stringify(objekData));
         }
 
         const paparan = document.getElementById('paparanMesej');
@@ -475,29 +530,32 @@
             const teks = inputAyat.value.trim();
             if (teks === "") return;
 
-            // PENAPIS BAHASA
             if (cekCarutan(teks)) {
                 tunjukAmaran("Dilarang mencarut! Mesej dipadam.");
                 inputAyat.value = '';
                 return;
             }
 
-            tambahBelon(teks, namaUser, avatarPilihan, true); // true = mesej kita
+            // 1. Papar di skrin sendiri dulu
+            tambahBelon(teks, namaUser, avatarPilihan, true);
+
+            // 2. Hantar ke server (supaya kawan nampak)
+            hantarData({
+                jenis: 'chat',
+                nama: namaUser,
+                avatar: avatarPilihan,
+                mesej: teks
+            });
+
             inputAyat.value = '';
             skrolKeBawah();
             popupEmoji.style.display = 'none';
-
-            // Simulasi kawan balas (Sebab tiada backend sebenar)
-            setTimeout(() => {
-                balasSecaraRawak(teks);
-            }, 1500 + Math.random() * 1000);
         }
 
         function tambahBelon(ayat, nama, muka, isKita = false) {
             let kelasBaris = isKita ? 'baris-mesej kanan' : 'baris-mesej';
             let kelasBelon = isKita ? 'belon belon-kanan' : 'belon belon-kiri';
             
-            // Kalau bukan kita, tunjuk nama kecil di atas belon
             let htmlNama = isKita ? '' : `<span class="nama-pengirim-kecil">${nama}</span>`;
 
             const html = `
@@ -512,37 +570,6 @@
             
             paparan.insertAdjacentHTML('beforeend', html);
             skrolKeBawah();
-        }
-
-        // Fungsi simulasi kawan kampung membalas
-        function balasSecaraRawak(ayatKita) {
-            const kawanKampung = [
-                { nama: "Mat Kilau", avatar: "🧔" },
-                { nama: "Melur", avatar: "🧕" },
-                { nama: "Tok Ketua", avatar: "👴" },
-                { nama: "Budak Tech", avatar: "🤓" }
-            ];
-            
-            const responUmum = [
-                "Betul tu!", 
-                "Wah menarik.", 
-                "Jom lepak kedai kopi nanti.", 
-                "Hahaha lawak la awak ni.",
-                "Salam perkenalan dari saya.",
-                "Kampung kita memang terbaik."
-            ];
-
-            let pengirimRawak = kawanKampung[Math.floor(Math.random() * kawanKampung.length)];
-            let ayatRawak = responUmum[Math.floor(Math.random() * responUmum.length)];
-
-            // Logic sikit supaya nampak real
-            if (ayatKita.includes("salam") || ayatKita.includes("hai")) {
-                ayatRawak = "Waalaikumussalam sahabat!";
-            } else if (ayatKita.includes("sihat")) {
-                ayatRawak = "Alhamdulillah sihat je ni.";
-            }
-
-            tambahBelon(ayatRawak, pengirimRawak.nama, pengirimRawak.avatar, false);
         }
 
         function skrolKeBawah() {
