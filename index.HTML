@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Kampung Kuala Selama</title>
+    <!-- Panggil otak PeerJS -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        body {
+            font-family: 'Verdana', sans-serif;
+            background-color: #81ecec;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #app-container {
+            width: 400px;
+            height: 650px;
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 5px solid #00cec9;
+        }
+
+        /* SKRIN MULA */
+        #login-screen {
+            background-color: #fab1a0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 { color: #d63031; margin-bottom: 5px; font-size: 24px; }
+        p { color: #2d3436; font-size: 14px; margin-bottom: 20px; }
+
+        input {
+            padding: 15px;
+            border-radius: 30px;
+            border: none;
+            width: 80%;
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 15px;
+            outline: none;
+            box-shadow: 0 4px 0 #e17055;
+        }
+
+        .btn-masuk {
+            padding: 15px 40px;
+            background-color: #00b894;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #00896f;
+            transition: transform 0.1s;
+        }
+
+        .btn-masuk:active { transform: translateY(4px); box-shadow: none; }
+
+        /* SKRIN CHAT */
+        #chat-screen {
+            display: none; /* Sorok dulu */
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #header {
+            background-color: #00cec9;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #chat-box {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #dfe6e9;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            font-size: 14px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .my-msg {
+            align-self: flex-end;
+            background-color: #fdcb6e;
+            color: #333;
+            border-bottom-right-radius: 2px;
+        }
+
+        .other-msg {
+            align-self: flex-start;
+            background-color: white;
+            border: 1px solid #b2bec3;
+            border-bottom-left-radius: 2px;
+        }
+
+        .system-msg {
+            align-self: center;
+            background-color: #b2bec3;
+            color: white;
+            font-size: 11px;
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+
+        .sender-name {
+            font-size: 10px;
+            color: #636e72;
+            display: block;
+            margin-bottom: 3px;
+            font-weight: bold;
+        }
+
+        #input-area {
+            padding: 10px;
+            background: white;
+            display: flex;
+            border-top: 1px solid #ccc;
+        }
+
+        #msg-input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 20px;
+            border: 2px solid #fab1a0;
+            outline: none;
+        }
+
+        #send-btn {
+            background: #0984e3;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-left: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        
+        <!-- Halaman Login -->
+        <div id="login-screen">
+            <h1>Kampung Kuala Selama</h1>
+            <p>Masukkan nama samaran untuk masuk ke balai raya.</p>
+            <input type="text" id="username" placeholder="Nama Panggilan (Contoh: Bobo)">
+            <button class="btn-masuk" onclick="masukKampung()">MASUK SEKARANG</button>
+            <p id="status-loading" style="margin-top:20px; color:#d63031; font-weight:bold;"></p>
+        </div>
+
+        <!-- Halaman Chat -->
+        <div id="chat-screen">
+            <div id="header">Balai Raya ??</div>
+            <div id="chat-box"></div>
+            <div id="input-area">
+                <input type="text" id="msg-input" placeholder="Tulis pesan..." onkeypress="tekanEnter(event)">
+                <button id="send-btn" onclick="hantarMesej()">?</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- KONFIGURASI PENTING ---
+        // Ini adalah ID Bilik Tetap. Semua orang akan cuba sambung ke sini.
+        const ROOM_ID = "kuala-selama-room-v1"; 
+
+        let peer = null;
+        let myName = "";
+        let amIHost = false; // Adakah saya Tok Ketua?
+        let connections = []; // Senarai penduduk (hanya untuk Tok Ketua)
+        let hostConnection = null; // Talian ke Tok Ketua (hanya untuk Penduduk)
+
+        function masukKampung() {
+            const inputName = document.getElementById('username').value.trim();
+            if (inputName === "") {
+                alert("Sila letak nama dulu!");
+                return;
+            }
+            myName = inputName;
+            document.getElementById('status-loading').innerText = "Sedang mencari jalan ke kampung...";
+            
+            // Langkah 1: Cuba jadi Tok Ketua dulu (Guna ID Bilik Tetap)
+            peer = new Peer(ROOM_ID);
+
+            // Jika berjaya jadi Tok Ketua (ID belum diambil orang)
+            peer.on('open', function(id) {
+                amIHost = true;
+                bukaChatScreen();
+                tambahMesejSistem("Tahniah! Awak adalah TOK KETUA. Orang lain akan masuk ke bilik awak.");
+            });
+
+            // Jika gagal (ID dah ada orang guna), maksudnya Tok Ketua dah ada.
+            // Kita jadi Penduduk biasa.
+            peer.on('error', function(err) {
+                if (err.type === 'unavailable-id') {
+                    // ID bilik dah penuh, maknanya bilik dah wujud.
+                    // Kita buat ID baru random, dan sambung ke Tok Ketua.
+                    peer = new Peer(); // ID rawak
+                    peer.on('open', function(id) {
+                        sambungKeTokKetua();
+                    });
+                } else {
+                    alert("Ralat Internet: " + err);
+                }
+            });
+
+            // Setup asas Peer (untuk terima connection)
+            setTimeout(() => setupPeerEvents(), 1000);
+        }
+
+        function setupPeerEvents() {
+            peer.on('connection', function(conn) {
+                // Jika saya Tok Ketua, ada orang baru masuk!
+                if (amIHost) {
+                    connections.push(conn);
+                    
+                    conn.on('data', function(data) {
+                        // Tok Ketua terima mesej
+                        terimaMesej(data);
+                        // Tok Ketua kena sebarkan (Broadcast) ke orang lain
+                        sebarkanMesej(data, conn.peer); 
+                    });
+
+                    conn.on('open', function() {
+                        conn.send({ type: 'system', text: 'Selamat datang ke Kampung Kuala Selama!' });
+                    });
+                    
+                    conn.on('close', function() {
+                        // Buang dari senarai jika keluar
+                        connections = connections.filter(c => c.peer !== conn.peer);
+                    });
+                }
+            });
+        }
+
+        // Fungsi untuk Penduduk Biasa
+        function sambungKeTokKetua() {
+            hostConnection = peer.connect(ROOM_ID);
+            
+            hostConnection.on('open', function() {
+                bukaChatScreen();
+                tambahMesejSistem("Berjaya masuk kampung! Boleh mula berborak.");
+                // Beritahu nama kita
+                hostConnection.send({ type: 'join', name: myName });
+            });
+
+            hostConnection.on('data', function(data) {
+                terimaMesej(data);
+            });
+
+            hostConnection.on('close', function() {
+                alert("Tok Ketua dah tutup balai raya (Left). Sila refresh.");
+                location.reload();
+            });
+        }
+
+        // UI Logic
+        function bukaChatScreen() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('chat-screen').style.display = 'flex';
+        }
+
+        function hantarMesej() {
+            const input = document.getElementById('msg-input');
+            const teks = input.value.trim();
+            if (!teks) return;
+
+            // Papar mesej sendiri
+            paparkanMesejUI(myName, teks, true);
+
+            const dataPaket = { type: 'chat', name: myName, text: teks };
+
+            if (amIHost) {
+                // Kalau Tok Ketua, sebarkan pada semua
+                sebarkanMesej(dataPaket, null); 
+            } else {
+                // Kalau Penduduk, hantar pada Tok Ketua je
+                hostConnection.send(dataPaket);
+            }
+
+            input.value = "";
+        }
+
+        // Tok Ketua sebarkan mesej ke semua KECUALI pengirim asal
+        function sebarkanMesej(data, senderPeerId) {
+            connections.forEach(conn => {
+                if (conn.peer !== senderPeerId && conn.open) {
+                    conn.send(data);
+                }
+            });
+        }
+
+        function terimaMesej(data) {
+            if (data.type === 'chat') {
+                paparkanMesejUI(data.name, data.text, false);
+            } else if (data.type === 'system') {
+                tambahMesejSistem(data.text);
+            } else if (data.type === 'join') {
+                tambahMesejSistem(data.name + " baru sampai di kampung!");
+                // Kalau saya host, saya kena broadcast info ni
+                if (amIHost) sebarkanMesej({ type: 'system', text: data.name + " baru masuk!" }, null);
+            }
+        }
+
+        function paparkanMesejUI(nama, teks, isMe) {
+            const box = document.getElementById('chat-box');
+            const div = document.createElement('div');
+            div.className = isMe ? 'message my-msg' : 'message other-msg';
+            div.innerHTML = `<span class="sender-name">${nama}</span>${teks}`;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function tambahMesejSistem(teks) {
+            const box = document.getElementById('chat-box');
+            const div = document.createElement('div');
+            div.className = 'message system-msg';
+            div.innerText = teks;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function tekanEnter(e) {
+            if (e.key === "Enter") hantarMesej();
+        }
+
+    </script>
+</body>
+</html>
