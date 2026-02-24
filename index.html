@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KAMPUNG KUALA SELAMA - Chat Room</title>
+    <title>kundasang - Chat Room</title>
     <!-- Pustaka MQTT untuk Chat Real-Time -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <style>
@@ -425,9 +425,14 @@
             "babi", "bodoh", "sial", "anjir", "fuck", "shit", "pukimak", "lancau", "kimak", "butoh", "pantat", "asshole", "bitch", "gila", "bongok", "bahlul"
         ];
 
-        // Senarai Avatar 3D Style 
+        // Senarai Avatar & Emoji yang dikemaskini
         const senaraiAvatar = [
-            "👦","👧","👱","👨‍🦱","👩‍🦰","🧔","🧕","👲","👮","🕵️","👷","🦸","🦹","🧙","🧚","🧛","🧜","🧝","🧞","🧟","👽","🤖","🦁","🐯","🐻","🐨","🐼","🐸","🐙","🦄"
+            "👦","👧","👱","👨‍🦱","👩‍🦰","🧔","🧕","👲","👮","🕵️","👷","🦸","🦹","🧙","🧚","🧛","🧜","🧝","🧞","🧟","👽","🤖","🦁","🐯","🐻","🐨","🐼","🐸","🐙","🦄",
+            "🐶","🐱","🐵","🙉","🙊","🐧","🐦","🐤","🦆","🦅","🦉","🦇","🐝","🐛","🦋","🐌","🐞","🐜","🕷️","🦗","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","🦞","🦀",
+            "😀","😃","😄","😁","😆","😅","😂","🤣","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😗","😙","😚","😋","😛","😝","😜","🤪","🤨","🧐","🤓","😎","🤩","🥳","😏",
+            "❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💟","🔥","✨","🌟","💫","💥","💢","💦","💧","💤","👋","🤚","🖐️",
+            "👍","👎","👏","🙌","👐","🤲","🤝","🙏","✍️","💅","🤳","💪","🦵","🦶","👂","👃","🧠","🦷","🦴","👀","👁️","👅","👄","💋","👶","🧒","🧑","👱","🧔","👴","👵",
+            "🍔","🍟","🍕","🌭","🥪","🌮","🌯","🥗","🥘","🥫","🍝","🍜","🍲","🍛","🍣","🍱","🥟","🍤","🍙","🍚","🍘","🍥","🥠","🍢","🍡","🍧","🍨","🍦","🥧","🍰"
         ];
 
         // --- SETUP AWAL ---
@@ -514,9 +519,14 @@
         function padamChat() {
             let pass = prompt("Masukkan Kata Laluan Admin untuk Padam:");
             if (pass === "101010") {
+                // Local clear
                 localStorage.removeItem('chat_history_kg');
                 document.getElementById('paparanMesej').innerHTML = '';
-                alert("Chat telah dikosongkan!");
+                
+                // Hantar signal kepada semua user untuk padam chat
+                hantarData({ jenis: 'clear_all' });
+
+                alert("Chat telah dikosongkan untuk SEMUA orang!");
             } else {
                 if(pass !== null) alert("Kata laluan salah!");
             }
@@ -552,6 +562,8 @@
             client.on('message', function (topic, message) {
                 let data = JSON.parse(message.toString());
                 
+                // Abaikan mesej sendiri, KECUALI arahan 'clear_all' mungkin perlu diproses juga secara logik 
+                // (tetapi kita dah proses local di padamChat, so boleh ignore juga)
                 if (data.idPengirim === idUnik) return;
 
                 if (data.jenis === 'chat') {
@@ -582,6 +594,11 @@
                             tambahBelon(item.mesej, item.nama, item.avatar, false, true, item.mediaType);
                         });
                     }
+                } else if (data.jenis === 'clear_all') {
+                    // ARAHAN DARI ADMIN UNTUK PADAM SEMUA
+                    localStorage.removeItem('chat_history_kg');
+                    document.getElementById('paparanMesej').innerHTML = '';
+                    tunjukAmaran("Admin telah memadam semua chat untuk semua pengguna!");
                 }
             });
             
