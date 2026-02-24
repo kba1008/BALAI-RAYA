@@ -148,7 +148,7 @@
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        .avatar-kecil { 
+        .avatar-kecil {
             font-size: 40px; 
             filter: drop-shadow(0 4px 4px rgba(0,0,0,0.3));
         }
@@ -539,6 +539,10 @@
                             jenis: 'join',
                             nama: namaUser
                         });
+
+                        // Minta history dari rakan lain
+                        hantarData({ jenis: 'request_sync' });
+
                         onlineUsers.add(namaUser);
                         updateListOnline();
                     }
@@ -561,6 +565,23 @@
                     // Orang sedia ada bagitahu dia ada
                     onlineUsers.add(data.nama);
                     updateListOnline();
+                } else if (data.jenis === 'request_sync') {
+                    // Ada user baru minta history
+                    let localData = localStorage.getItem('chat_history_kg');
+                    if (localData) {
+                        let historyArr = JSON.parse(localData);
+                        // Hantar 50 mesej terakhir sahaja supaya tak berat
+                        let payload = historyArr.slice(-50);
+                        hantarData({ jenis: 'response_sync', dataHistory: JSON.stringify(payload) });
+                    }
+                } else if (data.jenis === 'response_sync') {
+                    // Terima history orang lain
+                    if (!localStorage.getItem('chat_history_kg')) {
+                        let received = JSON.parse(data.dataHistory);
+                        received.forEach(item => {
+                            tambahBelon(item.mesej, item.nama, item.avatar, false, true, item.mediaType);
+                        });
+                    }
                 }
             });
             
