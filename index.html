@@ -440,6 +440,12 @@
         // --- KONFIGURASI REAL-TIME (MQTT) ---
         const brokerUrl = 'wss://broker.emqx.io:8084/mqtt'; 
         const topikChat = 'kampung/kuala/selama/chat/v1'; 
+        
+        // --- KONFIGURASI JITSI (SELF-HOSTED) ---
+        // Gantikan URL di bawah dengan domain server Jitsi anda sendiri (VPS).
+        // Dengan self-hosted, limit peserta hanya dibatasi oleh CPU/RAM server anda.
+        const jitsiDomain = 'https://meet.jit.si'; // Contoh: 'https://video.sekolah.com'
+
         let client;
         let idUnik = 'user_' + Math.random().toString(16).substr(2, 8); 
 
@@ -767,8 +773,8 @@
         function buatPanggilan(jenis) {
             // Jana ID bilik unik
             let roomName = "KKS_Room_" + Math.floor(Math.random() * 9999);
-            // Gunakan Jitsi Meet (percuma & stabil)
-            let link = "https://meet.jit.si/" + roomName;
+            // Gunakan Jitsi Meet (Self-Hosted logic)
+            let link = jitsiDomain + "/" + roomName;
             
             let textInfo = "";
             if(jenis === 'suara') {
