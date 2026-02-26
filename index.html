@@ -185,6 +185,31 @@
         }
         .btn-padam:hover { background: rgba(255, 165, 0, 0.5); }
 
+        /* Styles untuk Call & Video */
+        .btn-call {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            color: white;
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        .btn-call:hover { background: rgba(0, 255, 0, 0.5); }
+
+        .btn-video {
+            background: rgba(0, 200, 255, 0.2);
+            border: 1px solid #00c8ff;
+            color: white;
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        .btn-video:hover { background: rgba(0, 200, 255, 0.5); }
+
         .ruang-mesej {
             flex: 1;
             padding: 20px;
@@ -310,7 +335,7 @@
             transition: 0.3s;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
         }
-        input[type="text"]:focus { background: #fff; }
+        input[type="text"] :focus { background: #fff; }
 
         button.hantar {
             background: linear-gradient(145deg, #00d2ff, #3a7bd5);
@@ -384,6 +409,9 @@
                 <div id="listOnline" class="list-online">Menunggu ahli...</div>
             </div>
             <div class="btn-group-atas">
+                <!-- Butang Call Ditambah -->
+                <button class="btn-call" onclick="buatPanggilan('suara')" title="Panggilan Suara">📞</button>
+                <button class="btn-video" onclick="buatPanggilan('video')" title="Panggilan Video">📹</button>
                 <button class="btn-padam" onclick="padamChat()" title="Clear Chat">🗑️</button>
                 <button class="btn-keluar" onclick="location.reload()" title="Keluar">Keluar</button>
             </div>
@@ -733,6 +761,37 @@
         function tambahEmojiKeInput(emoji) {
             inputAyat.value += emoji;
             inputAyat.focus();
+        }
+
+        // --- FUNGSI PANGGILAN VIDEO/SUARA ---
+        function buatPanggilan(jenis) {
+            // Jana ID bilik unik
+            let roomName = "KKS_Room_" + Math.floor(Math.random() * 9999);
+            // Gunakan Jitsi Meet (percuma & stabil)
+            let link = "https://meet.jit.si/" + roomName;
+            
+            let textInfo = "";
+            if(jenis === 'suara') {
+                textInfo = "📞 Panggilan Suara Dimulakan";
+            } else {
+                textInfo = "📹 Panggilan Video Dimulakan";
+            }
+
+            // Buat HTML Link yang boleh diklik
+            let htmlLink = `<br><br><a href="${link}" target="_blank" style="color: #fff; background: green; padding: 5px 10px; border-radius: 5px; text-decoration: none; display: inline-block; font-weight: bold;">➡️ SERTAI ${jenis.toUpperCase()} SEKARANG</a>`;
+            
+            let fullMesej = textInfo + htmlLink;
+
+            // Hantar ke diri sendiri
+            tambahBelon(fullMesej, namaUser, avatarPilihan, true, true);
+            
+            // Broadcast ke semua orang
+            hantarData({
+                jenis: 'chat',
+                nama: namaUser,
+                avatar: avatarPilihan,
+                mesej: fullMesej
+            });
         }
 
     </script>
